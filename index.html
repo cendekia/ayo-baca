@@ -79,6 +79,11 @@
             touch-action: none;
             cursor: crosshair;
         }
+        /* Krayon yang sedang dipilih */
+        .brush-swatch[aria-pressed="true"] {
+            box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 6px #334155;
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body class="text-slate-800 flex flex-col justify-between">
@@ -433,11 +438,11 @@
 
                     <!-- Pilihan Warna Krayon Anak -->
                     <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border-2 border-slate-200">
-                        <button onclick="setBrushColor('#EF4444')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white shadow ring-2 ring-red-300" aria-label="Merah"></button>
-                        <button onclick="setBrushColor('#3B82F6')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white shadow" aria-label="Biru"></button>
-                        <button onclick="setBrushColor('#10B981')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow" aria-label="Hijau"></button>
-                        <button onclick="setBrushColor('#8B5CF6')" class="w-8 h-8 rounded-full bg-violet-500 border-2 border-white shadow" aria-label="Ungu"></button>
-                        <button onclick="setBrushColor('#F97316')" class="w-8 h-8 rounded-full bg-orange-500 border-2 border-white shadow" aria-label="Oranye"></button>
+                        <button onclick="setBrushColor('#EF4444')" data-color="#EF4444" aria-pressed="false" class="brush-swatch w-8 h-8 rounded-full bg-red-500 border-2 border-white shadow" aria-label="Merah"></button>
+                        <button onclick="setBrushColor('#3B82F6')" data-color="#3B82F6" aria-pressed="true" class="brush-swatch w-8 h-8 rounded-full bg-blue-500 border-2 border-white shadow" aria-label="Biru"></button>
+                        <button onclick="setBrushColor('#10B981')" data-color="#10B981" aria-pressed="false" class="brush-swatch w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow" aria-label="Hijau"></button>
+                        <button onclick="setBrushColor('#8B5CF6')" data-color="#8B5CF6" aria-pressed="false" class="brush-swatch w-8 h-8 rounded-full bg-violet-500 border-2 border-white shadow" aria-label="Ungu"></button>
+                        <button onclick="setBrushColor('#F97316')" data-color="#F97316" aria-pressed="false" class="brush-swatch w-8 h-8 rounded-full bg-orange-500 border-2 border-white shadow" aria-label="Oranye"></button>
                     </div>
                 </div>
 
@@ -2183,6 +2188,9 @@
         function setBrushColor(color) {
             brushColor = color;
             playSoundEffect('pop');
+            document.querySelectorAll('.brush-swatch').forEach((btn) => {
+                btn.setAttribute('aria-pressed', btn.dataset.color === color ? 'true' : 'false');
+            });
         }
 
         function clearTraceCanvas() {
