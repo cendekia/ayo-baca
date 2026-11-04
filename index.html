@@ -1431,7 +1431,6 @@
 
         // Pengaturan Mesin Suara
         let userSpeechRate = parseFloat(readStored('AyoBaca_rate', '0.85')) || 0.85;
-        let cloudAudioPlayer = new Audio();
 
         // State Kanvas Jejak Huruf
         let traceCanvas, traceCtx;
@@ -1551,39 +1550,104 @@
         const SOUND_FAILED_MESSAGE = 'Suara gagal dimuat. Periksa koneksi internet, atau tunggu beberapa menit karena Google mungkin sedang membatasi jumlah suara.';
         const TAP_TO_ENABLE_MESSAGE = 'Browser menahan suara. Ketuk layar sekali, lalu coba lagi.';
 
-        function speakCloudText(text, language = 'id') {
-            if (!navigator.onLine) {
-                cloudAudioPlayer.pause();
-                setSpeechStatus('Koneksi internet diperlukan untuk memutar suara cloud.', true);
-                return;
-            }
+        // Google forbids caching these sounds (no-store) and limits how many one network may
+        // request (429 Too Many Requests). To ask Google less often:
+        // - sounds that already loaded stay in a pool of <audio> elements and are replayed from memory;
+        // - during fast tapping, only the last tap is downloaded (at most one download per 0.6 s).
+        const SOUND_POOL_SIZE = 30;          // stays under the media player limit of mobile browsers
+        const MIN_DOWNLOAD_GAP_MS = 600;
+        const soundPool = [];                // { audio, url, lastUsed }
+        let currentSound = null;
+        let pendingSoundTimer = null;
+        let lastDownloadAt = -Infinity;
 
-            cloudAudioPlayer.pause();
-            cloudAudioPlayer.currentTime = 0;
-            cloudAudioPlayer.onerror = () => {
-                setSpeechStatus(SOUND_FAILED_MESSAGE, true);
-            };
-            cloudAudioPlayer.onplaying = () => {
-                setSpeechStatus('TTS cloud Bahasa Indonesia aktif.');
-            };
-            cloudAudioPlayer.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${language}&client=tw-ob&q=${encodeURIComponent(text)}`;
-            // Setting src resets playbackRate to defaultPlaybackRate, so apply the speed afterwards.
-            cloudAudioPlayer.defaultPlaybackRate = userSpeechRate;
-            cloudAudioPlayer.playbackRate = userSpeechRate;
+        for (let i = 0; i < SOUND_POOL_SIZE; i++) {
+            const entry = { audio: new Audio(), url: '', lastUsed: 0 };
+            entry.audio.preload = 'auto';
+            entry.audio.addEventListener('playing', () => setSpeechStatus('TTS cloud Bahasa Indonesia aktif.'));
+            entry.audio.addEventListener('error', () => {
+                entry.url = ''; // forget the failed sound so the next tap downloads it again
+                if (entry === currentSound) setSpeechStatus(SOUND_FAILED_MESSAGE, true);
+            });
+            soundPool.push(entry);
+        }
+
+        // iOS Safari only lets an <audio> element play from a timer (quiz prompt, A-Z reading)
+        // after a tap has started it once. Touch every pooled element during the first tap.
+        function unlockSoundPool() {
+            soundPool.forEach((entry) => {
+                if (!entry.url) entry.audio.load();
+            });
+        }
+        ['touchend', 'click', 'keydown'].forEach((type) => {
+            document.addEventListener(type, unlockSoundPool, { once: true, capture: true });
+        });
+
+        function stopCurrentSound() {
+            clearTimeout(pendingSoundTimer);
+            pendingSoundTimer = null;
+            if (currentSound) currentSound.audio.pause();
+        }
+
+        // Load a new sound into the least recently used element that isn't playing.
+        function downloadSound(url) {
+            const entry = soundPool
+                .filter((e) => e !== currentSound)
+                .reduce((oldest, e) => (e.lastUsed < oldest.lastUsed ? e : oldest));
+            entry.url = url;
+            entry.audio.src = url;
+            lastDownloadAt = performance.now();
+            return entry;
+        }
+
+        function playPooledSound(entry) {
+            currentSound = entry;
+            entry.lastUsed = performance.now();
+            const audio = entry.audio;
+            // Setting src resets playbackRate to defaultPlaybackRate, so apply the speed every time.
+            audio.defaultPlaybackRate = userSpeechRate;
+            audio.playbackRate = userSpeechRate;
+            if (audio.readyState > 0) audio.currentTime = 0;
 
             try {
-                const playPromise = cloudAudioPlayer.play();
+                const playPromise = audio.play();
                 if (playPromise) {
                     playPromise.catch((err) => {
                         // A newer sound interrupted this one; that is not a connection problem.
-                        if (err && err.name === 'AbortError') return;
+                        if (!err || err.name === 'AbortError' || entry !== currentSound) return;
                         // NotAllowedError: the browser blocks sound until the child taps the page.
-                        setSpeechStatus(err && err.name === 'NotAllowedError' ? TAP_TO_ENABLE_MESSAGE : SOUND_FAILED_MESSAGE, true);
+                        setSpeechStatus(err.name === 'NotAllowedError' ? TAP_TO_ENABLE_MESSAGE : SOUND_FAILED_MESSAGE, true);
                     });
                 }
             } catch (e) {
                 setSpeechStatus(SOUND_FAILED_MESSAGE, true);
             }
+        }
+
+        function speakCloudText(text, language = 'id') {
+            stopCurrentSound();
+            if (!navigator.onLine) {
+                setSpeechStatus('Koneksi internet diperlukan untuk memutar suara cloud.', true);
+                return;
+            }
+
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${language}&client=tw-ob&q=${encodeURIComponent(text)}`;
+            const loaded = soundPool.find((e) => e.url === url && !e.audio.error);
+            if (loaded) {
+                playPooledSound(loaded);
+                return;
+            }
+
+            const wait = lastDownloadAt + MIN_DOWNLOAD_GAP_MS - performance.now();
+            if (wait <= 0) {
+                playPooledSound(downloadSound(url));
+                return;
+            }
+            // Tapping fast: wait a moment, and only the latest tap gets downloaded.
+            pendingSoundTimer = setTimeout(() => {
+                pendingSoundTimer = null;
+                playPooledSound(downloadSound(url));
+            }, wait);
         }
 
         function speakIndonesianNatural(text) {
