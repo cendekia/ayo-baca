@@ -2053,14 +2053,23 @@
         /********************************************************************
          * 8. MODE 4: JEJAK HURUF MULTISENSORI (CANVAS VAKT)
          ********************************************************************/
+        // Canvas size in CSS pixels. The bitmap is scaled by devicePixelRatio so lines stay sharp.
+        let traceCssWidth = 0;
+        let traceCssHeight = 0;
+
         function initTraceCanvas() {
             traceCanvas = document.getElementById('traceCanvas');
             if (!traceCanvas) return;
             traceCtx = traceCanvas.getContext('2d');
 
             const rect = traceCanvas.getBoundingClientRect();
-            traceCanvas.width = rect.width || 380;
-            traceCanvas.height = rect.height || 260;
+            const dpr = window.devicePixelRatio || 1;
+            traceCssWidth = rect.width || 380;
+            traceCssHeight = rect.height || 260;
+            traceCanvas.width = Math.round(traceCssWidth * dpr);
+            traceCanvas.height = Math.round(traceCssHeight * dpr);
+            // Draw in CSS pixels so pointer positions map directly onto the canvas.
+            traceCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
             strokePointsCount = 0;
             hasCelebratedCurrentTrace = false;
@@ -2073,37 +2082,39 @@
             const item = ALPHABET_DATA[currentLetterIndex];
             const text = `${item.letter} ${item.letter.toLowerCase()}`;
 
-            traceCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
+            const w = traceCssWidth;
+            const h = traceCssHeight;
+            traceCtx.clearRect(0, 0, w, h);
 
             // Garis bantu buku tulis anak
             traceCtx.save();
             traceCtx.strokeStyle = '#E2E8F0';
             traceCtx.lineWidth = 2;
             traceCtx.setLineDash([6, 6]);
-            const midY = traceCanvas.height * 0.55;
-            const baseLineY = traceCanvas.height * 0.78;
+            const midY = h * 0.55;
+            const baseLineY = h * 0.78;
             traceCtx.beginPath();
             traceCtx.moveTo(20, midY);
-            traceCtx.lineTo(traceCanvas.width - 20, midY);
+            traceCtx.lineTo(w - 20, midY);
             traceCtx.moveTo(20, baseLineY);
-            traceCtx.lineTo(traceCanvas.width - 20, baseLineY);
+            traceCtx.lineTo(w - 20, baseLineY);
             traceCtx.stroke();
             traceCtx.restore();
 
             // Huruf panduan titik-titik
             traceCtx.save();
-            const fontSize = Math.min(traceCanvas.width * 0.42, 150);
+            const fontSize = Math.min(w * 0.42, 150);
             traceCtx.font = `700 ${fontSize}px 'Fredoka', sans-serif`;
             traceCtx.textAlign = 'center';
             traceCtx.textBaseline = 'middle';
 
             traceCtx.fillStyle = '#F1F5F9';
-            traceCtx.fillText(text, traceCanvas.width / 2, traceCanvas.height / 2);
+            traceCtx.fillText(text, w / 2, h / 2);
 
             traceCtx.strokeStyle = '#94A3B8';
             traceCtx.lineWidth = 3;
             traceCtx.setLineDash([7, 7]);
-            traceCtx.strokeText(text, traceCanvas.width / 2, traceCanvas.height / 2);
+            traceCtx.strokeText(text, w / 2, h / 2);
             traceCtx.restore();
         }
 
@@ -2211,9 +2222,13 @@
             canvas.addEventListener('touchend', endDraw, { passive: false });
 
             window.addEventListener('resize', () => {
-                if (currentMode === 'trace') {
-                    initTraceCanvas();
-                }
+                if (currentMode !== 'trace' || !traceCanvas) return;
+                // Mobile browsers fire resize when the address bar shows or hides.
+                // Only start over when the canvas itself changed size, so the drawing is kept.
+                const rect = traceCanvas.getBoundingClientRect();
+                if (Math.round(rect.width) === Math.round(traceCssWidth) &&
+                    Math.round(rect.height) === Math.round(traceCssHeight)) return;
+                initTraceCanvas();
             });
         }
 
