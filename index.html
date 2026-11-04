@@ -733,7 +733,7 @@
                     nameDisplay: "E (é / e / è)",
                     nameNativeTTS: "e",
                     nameFallbackTTS: "eh",
-                    soundDisplay: "/e/, /ə/, /ɛ/",
+                    soundDisplay: "/e/",
                     phonicsNativeTTS: "e, seperti ekor, bebek, dan elang.",
                     phonicsFallbackTTS: "eh, ekor, bebek, dan elang.",
                     word: "Ekor & Elang",
@@ -805,7 +805,7 @@
                     nameDisplay: "I (i)",
                     nameNativeTTS: "i",
                     nameFallbackTTS: "ee",
-                    soundDisplay: "/i/ & /ɪ/",
+                    soundDisplay: "/i/",
                     phonicsNativeTTS: "i, seperti ikan, ibu, itik.",
                     phonicsFallbackTTS: "ee, ikan, ibu, itik.",
                     word: "Ikan",
@@ -913,7 +913,7 @@
                     nameDisplay: "O (o)",
                     nameNativeTTS: "o",
                     nameFallbackTTS: "oh",
-                    soundDisplay: "/o/ & /ɔ/",
+                    soundDisplay: "/o/",
                     phonicsNativeTTS: "o, seperti obat, obeng, roti.",
                     phonicsFallbackTTS: "oh, obat, obeng, roti.",
                     word: "Obeng",
@@ -946,7 +946,7 @@
             {
                 letter: "Q", isVowel: false,
                 id: {
-                    nameDisplay: "Q (ki)",
+                    nameDisplay: "Q (qi /ki/ atau qiu /kiu̯/)",
                     nameNativeTTS: "ki",
                     nameFallbackTTS: "ki",
                     soundDisplay: "/k/",
@@ -1021,7 +1021,7 @@
                     nameDisplay: "U (u)",
                     nameNativeTTS: "u",
                     nameFallbackTTS: "oo",
-                    soundDisplay: "/u/ & /ʊ/",
+                    soundDisplay: "/u/",
                     phonicsNativeTTS: "u, seperti ulat, udang, buku.",
                     phonicsFallbackTTS: "oo, ulat, udang, buku.",
                     word: "Ulat",
@@ -1036,18 +1036,18 @@
             {
                 letter: "V", isVowel: false,
                 id: {
-                    nameDisplay: "V (fe)",
+                    nameDisplay: "V (ve /fe/)",
                     nameNativeTTS: "fe",
                     nameFallbackTTS: "feh",
-                    soundDisplay: "/v/",
+                    soundDisplay: "/f/",
                     phonicsNativeTTS: "fe, seperti vas dan biola.",
                     phonicsFallbackTTS: "feh, biola.",
-                    word: "Biola",
-                    wordNativeTTS: "biola",
-                    wordFallbackTTS: "biola",
+                    word: "Vas",
+                    wordNativeTTS: "vas",
+                    wordFallbackTTS: "vas",
                     syllables: "Bi - o - la",
-                    sentence: "Suara musik biola yang indah.",
-                    emoji: "1f3bb"
+                    sentence: "Vas berisi bunga.",
+                    emoji: "1f3fa"
                 },
                 en: { nameDisplay: "V (/viː/)", nameSpeech: "V", soundDisplay: "/v/", phonicsSpeech: "vvv, as in van", word: "Van", syllables: "V - a - n", sentence: "Drive the family van.", emoji: "1f690" }
             },
@@ -1072,10 +1072,10 @@
             {
                 letter: "X", isVowel: false,
                 id: {
-                    nameDisplay: "X (eks)",
+                    nameDisplay: "X (ex /eks/)",
                     nameNativeTTS: "eks",
                     nameFallbackTTS: "eks",
-                    soundDisplay: "/ks/",
+                    soundDisplay: "/ks/ atau /s/",
                     phonicsNativeTTS: "eks, seperti xilofon.",
                     phonicsFallbackTTS: "eks, xilofon.",
                     word: "Xilofon",
@@ -1317,11 +1317,11 @@
         };
 
         const INDONESIAN_VOWEL_GUIDES = {
-            A: "Bunyi huruf A: a, seperti pada kata apel, ayam, dan mata.",
-            E: "Huruf E punya tiga variasi bunyi: e taling tertutup seperti ekor dan meja, e taling terbuka seperti bebek dan nenek, serta e pepet seperti elang dan enam.",
-            I: "Bunyi huruf I: i terbuka seperti ikan dan ibu, serta i tertutup seperti itik dan adik.",
-            O: "Bunyi huruf O: o tertutup seperti toko dan bola, serta o terbuka seperti obeng, roti, dan pohon.",
-            U: "Bunyi huruf U: u terbuka seperti ulat dan buku, serta u tertutup seperti telur dan daun."
+            A: "Bunyi huruf A: a.",
+            E: "Bunyi huruf E: e.",
+            I: "Bunyi huruf I: i.",
+            O: "Bunyi huruf O: o.",
+            U: "Bunyi huruf U: u."
         };
 
         // Variasi Alofon Vokal Bahasa Indonesia (Sesuai Tata Bahasa Baku Bahasa Indonesia & KBBI)
@@ -1679,7 +1679,7 @@
             window.speechSynthesis.cancel();
 
             const bestIDVoice = getBestIndonesianVoice();
-            const useText = bestIDVoice ? textForID : textForFallback;
+            const useText = textForID;
 
             const utter = new SpeechSynthesisUtterance(useText);
             utter.lang = 'id-ID';
@@ -2047,11 +2047,9 @@
             const item = ALPHABET_DATA[currentLetterIndex];
             playSoundEffect('pop');
             if (currentLang === 'id') {
-                const syllableExamples = INDONESIAN_SYLLABLE_EXAMPLES[item.letter];
-                const spokenGuide = INDONESIAN_VOWEL_GUIDES[item.letter]
-                    || (syllableExamples
-                        ? `Contoh kata huruf ${item.id.nameNativeTTS}: ${syllableExamples.join(', ')}.`
-                        : `Contoh kata huruf ${item.id.nameNativeTTS}: ${item.id.word}.`);
+                const spokenGuide = item.isVowel
+                    ? INDONESIAN_VOWEL_GUIDES[item.letter]
+                    : `Bunyi awal huruf ${item.letter}, seperti pada kata ${item.id.word}.`;
                 speakIndonesianNatural(spokenGuide, spokenGuide);
             } else {
                 speakText(`${item.en.phonicsSpeech}.`, 'en');
@@ -2063,8 +2061,8 @@
             playSoundEffect('pop');
             if (currentLang === 'id') {
                 speakIndonesianNatural(
-                    `Huruf ${item.id.nameNativeTTS}, untuk ${item.id.word}. ${item.id.sentence}`,
-                    `Huruf ${item.id.nameNativeTTS}, untuk ${item.id.word}. ${item.id.sentence}`
+                    `Huruf ${item.id.nameNativeTTS}, untuk ${item.id.wordNativeTTS}. ${item.id.sentence}`,
+                    `Huruf ${item.id.nameNativeTTS}, untuk ${item.id.wordNativeTTS}. ${item.id.sentence}`
                 );
             } else {
                 speakText(`${item.letter} is for ${item.en.word}. ${item.en.sentence}`, 'en');
@@ -2075,8 +2073,8 @@
             const item = ALPHABET_DATA[currentLetterIndex];
             if (currentLang === 'id') {
                 speakIndonesianNatural(
-                    `Huruf ${item.id.nameNativeTTS}. ${item.id.word}.`,
-                    `Huruf ${item.id.nameNativeTTS}. ${item.id.word}.`
+                    `Huruf ${item.id.nameNativeTTS}. ${item.id.wordNativeTTS}.`,
+                    `Huruf ${item.id.nameNativeTTS}. ${item.id.wordNativeTTS}.`
                 );
             } else {
                 speakText(`${item.letter}. ${item.en.word}.`, 'en');
