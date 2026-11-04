@@ -300,15 +300,15 @@
                                     <div class="leading-tight">
                                         <div class="font-kid font-bold text-sm text-sky-700">1. Bunyi É Terbuka (/e/)</div>
                                         <div class="text-xs font-bold text-slate-600">Contoh: <strong>É-kor</strong>, <strong>Bé-bék</strong>, <strong>Mé-ja</strong></div>
-                                    </div>
-                                </button>
-                                <button onclick="speakEVariant('pepet')" class="btn-3d bg-white hover:bg-amber-50 text-slate-800 p-2.5 rounded-xl border-2 border-amber-300 flex items-center gap-2.5 text-left">
-                                    <span class="text-2xl">🦅</span>
-                                    <div class="leading-tight">
-                                        <div class="font-kid font-bold text-sm text-emerald-700">2. Bunyi E Pepet (/ə/)</div>
-                                        <div class="text-xs font-bold text-slate-600">Contoh: <strong>E-lang</strong>, <strong>E-nam</strong>, <strong>E-mas</strong></div>
-                                    </div>
-                                </button>
+                        <!-- Panel Khusus Variasi Bunyi Vokal Bahasa Indonesia (A, I, U, E, O) -->
+                        <div id="specialEVariantsPanel" class="hidden w-full bg-amber-100/90 border-2 border-amber-300 rounded-2xl p-3.5 text-left space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span id="vowelVariantsTitle" class="font-kid font-bold text-xs sm:text-sm text-amber-950">
+                                    💡 Variasi Bunyi Huruf Vokal Bahasa Indonesia (KBBI):
+                                </span>
+                            </div>
+                            <div id="vowelVariantsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <!-- Diisi secara dinamis untuk A, I, U, E, O oleh JS -->
                             </div>
                         </div>
 
@@ -331,7 +331,7 @@
                     </div>
                     <button onclick="playAllCurrentSyllables()" class="btn-3d bg-violet-500 hover:bg-violet-600 text-white px-5 py-2.5 rounded-2xl font-kid font-bold text-sm sm:text-base flex items-center gap-2 border-2 border-violet-300">
                         <span>🎵</span>
-                        <span id="btnSingSyllables">Dengar Contoh Kata (A-I-U-E-O)</span>
+                        <span id="btnSingSyllables">Ucapkan Semua (A-I-U-E-O)</span>
                     </button>
                 </div>
 
@@ -532,7 +532,7 @@
     <!-- ================= FOOTER RINGKAS ================= -->
     <footer class="max-w-5xl w-full mx-auto px-4 py-4 text-center text-xs sm:text-sm font-bold text-slate-500">
         <p>
-            🌟 <strong>AyoBaca</strong> — Aplikasi Edukasi Pra-Membaca Anak Usia &lt; 6 Tahun (Bahasa Indonesia &amp; Inggris).
+            🌟 <strong>AyoBaca</strong> — Aplikasi Edukasi Pra-Membaca Anak Usia &lt; 6 Tahun (Bahasa Indonesia &amp; Inggris) •
         </p>
     </footer>
 
@@ -561,12 +561,12 @@
                         1. Pilih Metode Suara Bahasa Indonesia:
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <button id="btnEnginePhonetic" onclick="setAudioEngineMode('phonetic')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100">
-                            <div class="text-sm sm:text-base">✨ Suara Perangkat + Ejaan Fonetik</div>
+                        <button id="btnEnginePhonetic" onclick="setAudioEngineMode('phonetic')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm">
+                            <div class="text-sm sm:text-base">✨ Suara Perangkat + Ejaan Fonetik Murni (Disarankan)</div>
                             <div class="text-xs opacity-90 font-body mt-0.5">Mengubah huruf ke ejaan vokal Indonesia (aa, bé, cé, ba, bi, bu) agar bebas logat Inggris & 100% jalan offline.</div>
                         </button>
-                        <button id="btnEngineCloud" onclick="setAudioEngineMode('cloud')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm">
-                            <div class="text-sm sm:text-base">☁️ Cloud Natural TTS Indonesia (Disarankan)</div>
+                        <button id="btnEngineCloud" onclick="setAudioEngineMode('cloud')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100">
+                            <div class="text-sm sm:text-base">☁️ Cloud Natural TTS Indonesia + Fallback</div>
                             <div class="text-xs opacity-80 font-body mt-0.5">Menggunakan streaming suara wanita natural Google Indonesia (butuh koneksi internet).</div>
                         </button>
                     </div>
@@ -632,8 +632,8 @@
                         <li><strong>Elkonin Sound Boxes (Elkonin, 1963):</strong> Memecah kata menjadi kotak-kotak bunyi yang disentuh satu per satu melatih <em>phonemic segmentation &amp; blending</em>.</li>
                     </ul>
                 </div>
+            </div>
 
-               
             <div class="mt-6 text-right">
                 <button onclick="toggleScienceModal(false)" class="btn-3d bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-2xl font-kid font-bold">
                     Tutup Panduan
@@ -645,7 +645,12 @@
     <!-- ================= LOGIKA JAVASCRIPT UTAMA ================= -->
     <script>
         /********************************************************************
-         * 1. KAMUS FONETIK MURNI BAHASA INDONESIA (ANTI LOGAT INGGRIS)
+         * 1. KAMUS FONETIK MURNI BAHASA INDONESIA & INGGRIS (ANTI EJA SINGKATAN)
+         * Catatan Penting:
+         * - Jangan gunakan vokal ganda ("aa", "ii", "uu", "oo") pada TTS Bahasa Indonesia
+         *   karena mesin TTS id-ID akan membacanya sebagai singkatan ("a-a", "i-i", "o-o").
+         * - Gunakan vokal tunggal dengan tanda titik atau konteks kata ("a.", "i.", "u.", "e.", "o.")
+         *   serta sediakan kartu variasi alofon vokal nyata untuk A, I, U, E, O.
          ********************************************************************/
         const TWEMOJI_BASE = "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/";
 
@@ -653,492 +658,645 @@
             {
                 letter: "A", isVowel: true,
                 id: {
-                    nameDisplay: "a",
+                    nameDisplay: "A (a)",
                     nameNativeTTS: "a",
-                    nameFallbackTTS: "a",
+                    nameFallbackTTS: "ah",
                     soundDisplay: "/a/",
-                    phonicsNativeTTS: "aa. a, i, u, ey, o.",
-                    phonicsFallbackTTS: "aah. ah, ee, oo, eh, oh.",
+                    phonicsNativeTTS: "a, seperti apel, ayam, awan.",
+                    phonicsFallbackTTS: "ah, apel, ayam, awan.",
                     word: "Apel",
-                    wordNativeTTS: "a, pel. apel!",
-                    wordFallbackTTS: "ah, pell. ah-pell!",
+                    wordNativeTTS: "apel",
+                    wordFallbackTTS: "apel",
                     syllables: "A - pel",
                     sentence: "Apel merah itu manis.",
                     emoji: "1f34e"
                 },
-                en: { nameSpeech: "ay", soundDisplay: "/æ/", phonicsSpeech: "aah", word: "Apple", syllables: "Ap - ple", sentence: "A shiny red apple.", emoji: "1f34e" }
+                en: { nameDisplay: "A (/eɪ/)", nameSpeech: "A", soundDisplay: "/æ/", phonicsSpeech: "aa, as in apple", word: "Apple", syllables: "Ap - ple", sentence: "A shiny red apple.", emoji: "1f34e" }
             },
             {
                 letter: "B", isVowel: false,
                 id: {
-                    nameDisplay: "be",
-                    nameNativeTTS: "bé",
-                    nameFallbackTTS: "bé",
+                    nameDisplay: "B (be)",
+                    nameNativeTTS: "be",
+                    nameFallbackTTS: "beh",
                     soundDisplay: "/b/",
-                    phonicsNativeTTS: "bé. ba, bi, bu, bé, bo.",
-                    phonicsFallbackTTS: "bé. ba, bi, bu, bé, bo.",
+                    phonicsNativeTTS: "be, seperti bola.",
+                    phonicsFallbackTTS: "beh, bola.",
                     word: "Bola",
-                    wordNativeTTS: "bo, la. bola!",
-                    wordFallbackTTS: "boh, lah. boh-lah!",
+                    wordNativeTTS: "bola",
+                    wordFallbackTTS: "bola",
                     syllables: "Bo - la",
                     sentence: "Budi menendang bola.",
                     emoji: "26bd"
                 },
-                en: { nameSpeech: "bee", soundDisplay: "/b/", phonicsSpeech: "buh", word: "Ball", syllables: "B - all", sentence: "Bounce the big ball.", emoji: "26bd" }
+                en: { nameDisplay: "B (/biː/)", nameSpeech: "B", soundDisplay: "/b/", phonicsSpeech: "buh, as in ball", word: "Ball", syllables: "B - all", sentence: "Bounce the big ball.", emoji: "26bd" }
             },
             {
                 letter: "C", isVowel: false,
                 id: {
-                    nameDisplay: "ce",
-                    nameNativeTTS: "cé",
-                    nameFallbackTTS: "cé",
+                    nameDisplay: "C (ce)",
+                    nameNativeTTS: "ce",
+                    nameFallbackTTS: "cheh",
                     soundDisplay: "/tʃ/",
-                    phonicsNativeTTS: "ceh. ca, ci, cu, cey, co.",
-                    phonicsFallbackTTS: "cheh. chah, chee, choo, cheh, choh.",
+                    phonicsNativeTTS: "ce, seperti ceri.",
+                    phonicsFallbackTTS: "cheh, ceri.",
                     word: "Ceri",
-                    wordNativeTTS: "ce, ri. ceri!",
-                    wordFallbackTTS: "cheh, ree. cheh-ree!",
+                    wordNativeTTS: "ceri",
+                    wordFallbackTTS: "ceri",
                     syllables: "Ce - ri",
                     sentence: "Buah ceri warna merah.",
                     emoji: "1f352"
                 },
-                en: { nameSpeech: "see", soundDisplay: "/k/", phonicsSpeech: "kuh", word: "Cat", syllables: "C - a - t", sentence: "The cute cat says meow.", emoji: "1f431" }
+                en: { nameDisplay: "C (/siː/)", nameSpeech: "C", soundDisplay: "/k/", phonicsSpeech: "kuh, as in cat", word: "Cat", syllables: "C - a - t", sentence: "The cute cat says meow.", emoji: "1f431" }
             },
             {
                 letter: "D", isVowel: false,
                 id: {
-                    nameDisplay: "de",
-                    nameNativeTTS: "dé",
-                    nameFallbackTTS: "dé",
+                    nameDisplay: "D (de)",
+                    nameNativeTTS: "de",
+                    nameFallbackTTS: "deh",
                     soundDisplay: "/d/",
-                    phonicsNativeTTS: "deh. da, di, du, dey, do.",
-                    phonicsFallbackTTS: "deh. dah, dee, doo, deh, doh.",
+                    phonicsNativeTTS: "de, seperti domba.",
+                    phonicsFallbackTTS: "deh, domba.",
                     word: "Domba",
-                    wordNativeTTS: "dom, ba. domba!",
-                    wordFallbackTTS: "dohm, bah. dohm-bah!",
+                    wordNativeTTS: "domba",
+                    wordFallbackTTS: "domba",
                     syllables: "Dom - ba",
                     sentence: "Bulu domba sangat lembut.",
                     emoji: "1f411"
                 },
-                en: { nameSpeech: "dee", soundDisplay: "/d/", phonicsSpeech: "duh", word: "Dog", syllables: "D - o - g", sentence: "The happy dog barks.", emoji: "1f436" }
+                en: { nameDisplay: "D (/diː/)", nameSpeech: "D", soundDisplay: "/d/", phonicsSpeech: "duh, as in dog", word: "Dog", syllables: "D - o - g", sentence: "The happy dog barks.", emoji: "1f436" }
             },
             {
                 letter: "E", isVowel: true,
                 id: {
-                    nameDisplay: "e (é / ə)",
-                    nameNativeTTS: "é",
-                    nameFallbackTTS: "é",
-                    soundDisplay: "/e/ & /ə/",
-                    phonicsNativeTTS: "ey, seperti eykor, dan e, seperti elang.",
-                    phonicsFallbackTTS: "eh, eh-kor, dan uh, uh-lahng.",
+                    nameDisplay: "E (é / e / è)",
+                    nameNativeTTS: "e",
+                    nameFallbackTTS: "eh",
+                    soundDisplay: "/e/, /ə/, /ɛ/",
+                    phonicsNativeTTS: "e, seperti ekor, bebek, dan elang.",
+                    phonicsFallbackTTS: "eh, ekor, bebek, dan elang.",
                     word: "Ekor & Elang",
-                    wordNativeTTS: "ekor dan elang.",
-                    wordFallbackTTS: "ekor dan elang.",
+                    wordNativeTTS: "ekor dan elang",
+                    wordFallbackTTS: "ekor dan elang",
                     syllables: "É - kor  |  E - lang",
                     sentence: "Burung elang punya ekor yang indah.",
                     emoji: "1f985"
                 },
-                en: { nameSpeech: "ee", soundDisplay: "/ɛ/", phonicsSpeech: "eh", word: "Egg", syllables: "E - gg", sentence: "A little white egg.", emoji: "1f95a" }
+                en: { nameDisplay: "E (/iː/)", nameSpeech: "E", soundDisplay: "/ɛ/", phonicsSpeech: "eh, as in egg", word: "Egg", syllables: "E - gg", sentence: "A little white egg.", emoji: "1f95a" }
             },
             {
                 letter: "F", isVowel: false,
                 id: {
-                    nameDisplay: "ef",
+                    nameDisplay: "F (ef)",
                     nameNativeTTS: "ef",
-                    nameFallbackTTS: "eff",
+                    nameFallbackTTS: "ef",
                     soundDisplay: "/f/",
-                    phonicsNativeTTS: "feh. fa, fi, fu, fey, fo.",
-                    phonicsFallbackTTS: "feh. fah, fee, foo, feh, foh.",
+                    phonicsNativeTTS: "ef, seperti foto.",
+                    phonicsFallbackTTS: "ef, foto.",
                     word: "Foto",
-                    wordNativeTTS: "fo, to. foto!",
-                    wordFallbackTTS: "foh, toh. foh-toh!",
+                    wordNativeTTS: "foto",
+                    wordFallbackTTS: "foto",
                     syllables: "Fo - to",
                     sentence: "Ayo tersenyum saat foto!",
                     emoji: "1f4f7"
                 },
-                en: { nameSpeech: "ef", soundDisplay: "/f/", phonicsSpeech: "fff", word: "Fish", syllables: "F - i - sh", sentence: "The fish swims in water.", emoji: "1f41f" }
+                en: { nameDisplay: "F (/ɛf/)", nameSpeech: "F", soundDisplay: "/f/", phonicsSpeech: "fff, as in fish", word: "Fish", syllables: "F - i - sh", sentence: "The fish swims in water.", emoji: "1f41f" }
             },
             {
                 letter: "G", isVowel: false,
                 id: {
-                    nameDisplay: "ge",
-                    nameNativeTTS: "gé",
-                    nameFallbackTTS: "gé",
+                    nameDisplay: "G (ge)",
+                    nameNativeTTS: "ge",
+                    nameFallbackTTS: "geh",
                     soundDisplay: "/g/",
-                    phonicsNativeTTS: "geh. ga, gi, gu, gey, go.",
-                    phonicsFallbackTTS: "geh. gah, gee, goo, geh, goh.",
+                    phonicsNativeTTS: "ge, seperti gajah.",
+                    phonicsFallbackTTS: "geh, gajah.",
                     word: "Gajah",
-                    wordNativeTTS: "ga, jah. gajah!",
-                    wordFallbackTTS: "gah, jah. gah-jah!",
+                    wordNativeTTS: "gajah",
+                    wordFallbackTTS: "gajah",
                     syllables: "Ga - jah",
                     sentence: "Gajah punya belalai panjang.",
                     emoji: "1f418"
                 },
-                en: { nameSpeech: "jee", soundDisplay: "/g/", phonicsSpeech: "guh", word: "Goat", syllables: "G - oa - t", sentence: "A goat on the green hill.", emoji: "1f410" }
+                en: { nameDisplay: "G (/dʒiː/)", nameSpeech: "G", soundDisplay: "/g/", phonicsSpeech: "guh, as in goat", word: "Goat", syllables: "G - oa - t", sentence: "A goat on the green hill.", emoji: "1f410" }
             },
             {
                 letter: "H", isVowel: false,
                 id: {
-                    nameDisplay: "ha",
+                    nameDisplay: "H (ha)",
                     nameNativeTTS: "ha",
-                    nameFallbackTTS: "hah",
+                    nameFallbackTTS: "ha",
                     soundDisplay: "/h/",
-                    phonicsNativeTTS: "hah. ha, hi, hu, hey, ho.",
-                    phonicsFallbackTTS: "hah. hah, hee, hoo, heh, hoh.",
+                    phonicsNativeTTS: "ha, seperti harimau.",
+                    phonicsFallbackTTS: "ha, harimau.",
                     word: "Harimau",
-                    wordNativeTTS: "ha, ri, mau. harimau!",
-                    wordFallbackTTS: "hah, ree, mow. hah-ree-mow!",
+                    wordNativeTTS: "harimau",
+                    wordFallbackTTS: "harimau",
                     syllables: "Ha - ri - mau",
                     sentence: "Harimau berlari cepat.",
                     emoji: "1f42f"
                 },
-                en: { nameSpeech: "aych", soundDisplay: "/h/", phonicsSpeech: "huh", word: "Hat", syllables: "H - a - t", sentence: "Wear a sunny hat.", emoji: "1f452" }
+                en: { nameDisplay: "H (/eɪtʃ/)", nameSpeech: "H", soundDisplay: "/h/", phonicsSpeech: "huh, as in hat", word: "Hat", syllables: "H - a - t", sentence: "Wear a sunny hat.", emoji: "1f452" }
             },
             {
                 letter: "I", isVowel: true,
                 id: {
-                    nameDisplay: "i",
+                    nameDisplay: "I (i)",
                     nameNativeTTS: "i",
-                    nameFallbackTTS: "i",
-                    soundDisplay: "/i/",
-                    phonicsNativeTTS: "ii. ikan.",
-                    phonicsFallbackTTS: "ee. ee-kahn.",
+                    nameFallbackTTS: "ee",
+                    soundDisplay: "/i/ & /ɪ/",
+                    phonicsNativeTTS: "i, seperti ikan, ibu, itik.",
+                    phonicsFallbackTTS: "ee, ikan, ibu, itik.",
                     word: "Ikan",
-                    wordNativeTTS: "i, kan. ikan!",
-                    wordFallbackTTS: "ee, kahn. ee-kahn!",
+                    wordNativeTTS: "ikan",
+                    wordFallbackTTS: "ikan",
                     syllables: "I - kan",
                     sentence: "Ikan berenang di air.",
                     emoji: "1f420"
                 },
-                en: { nameSpeech: "eye", soundDisplay: "/ɪ/", phonicsSpeech: "ih", word: "Igloo", syllables: "Ig - loo", sentence: "An igloo made of snow.", emoji: "1f9ca" }
+                en: { nameDisplay: "I (/aɪ/)", nameSpeech: "I", soundDisplay: "/ɪ/", phonicsSpeech: "ih, as in igloo", word: "Igloo", syllables: "Ig - loo", sentence: "An igloo made of snow.", emoji: "1f9ca" }
             },
             {
                 letter: "J", isVowel: false,
                 id: {
-                    nameDisplay: "je",
-                    nameNativeTTS: "jé",
-                    nameFallbackTTS: "jé",
+                    nameDisplay: "J (je)",
+                    nameNativeTTS: "je",
+                    nameFallbackTTS: "jeh",
                     soundDisplay: "/dʒ/",
-                    phonicsNativeTTS: "jeh. ja, ji, ju, jey, jo.",
-                    phonicsFallbackTTS: "jeh. jah, jee, joo, jeh, joh.",
+                    phonicsNativeTTS: "je, seperti jeruk.",
+                    phonicsFallbackTTS: "jeh, jeruk.",
                     word: "Jeruk",
-                    wordNativeTTS: "je, ruk. jeruk!",
-                    wordFallbackTTS: "jeh, rook. jeh-rook!",
+                    wordNativeTTS: "jeruk",
+                    wordFallbackTTS: "jeruk",
                     syllables: "Je - ruk",
                     sentence: "Jeruk segar kaya vitamin.",
                     emoji: "1f34a"
                 },
-                en: { nameSpeech: "jay", soundDisplay: "/dʒ/", phonicsSpeech: "juh", word: "Juice", syllables: "J - ui - ce", sentence: "Sweet orange juice.", emoji: "1f9c3" }
+                en: { nameDisplay: "J (/dʒeɪ/)", nameSpeech: "J", soundDisplay: "/dʒ/", phonicsSpeech: "juh, as in juice", word: "Juice", syllables: "J - ui - ce", sentence: "Sweet orange juice.", emoji: "1f9c3" }
             },
             {
                 letter: "K", isVowel: false,
                 id: {
-                    nameDisplay: "ka",
+                    nameDisplay: "K (ka)",
                     nameNativeTTS: "ka",
-                    nameFallbackTTS: "kah",
+                    nameFallbackTTS: "ka",
                     soundDisplay: "/k/",
-                    phonicsNativeTTS: "keh. ka, ki, ku, key, ko.",
-                    phonicsFallbackTTS: "keh. kah, kee, koo, keh, koh.",
+                    phonicsNativeTTS: "ka, seperti kuda.",
+                    phonicsFallbackTTS: "ka, kuda.",
                     word: "Kuda",
-                    wordNativeTTS: "ku, da. kuda!",
-                    wordFallbackTTS: "koo, dah. koo-dah!",
+                    wordNativeTTS: "kuda",
+                    wordFallbackTTS: "kuda",
                     syllables: "Ku - da",
                     sentence: "Kuda berlari di padang rumput.",
                     emoji: "1f434"
                 },
-                en: { nameSpeech: "kay", soundDisplay: "/k/", phonicsSpeech: "kuh", word: "Kite", syllables: "K - i - te", sentence: "Fly a colorful kite.", emoji: "1fa81" }
+                en: { nameDisplay: "K (/keɪ/)", nameSpeech: "K", soundDisplay: "/k/", phonicsSpeech: "kuh, as in kite", word: "Kite", syllables: "K - i - te", sentence: "Fly a colorful kite.", emoji: "1fa81" }
             },
             {
                 letter: "L", isVowel: false,
                 id: {
-                    nameDisplay: "el",
+                    nameDisplay: "L (el)",
                     nameNativeTTS: "el",
-                    nameFallbackTTS: "ell",
+                    nameFallbackTTS: "el",
                     soundDisplay: "/l/",
-                    phonicsNativeTTS: "leh. la, li, lu, ley, lo.",
-                    phonicsFallbackTTS: "leh. lah, lee, loo, leh, loh.",
+                    phonicsNativeTTS: "el, seperti lampu.",
+                    phonicsFallbackTTS: "el, lampu.",
                     word: "Lampu",
-                    wordNativeTTS: "lam, pu. lampu!",
-                    wordFallbackTTS: "lahm, poo. lahm-poo!",
+                    wordNativeTTS: "lampu",
+                    wordFallbackTTS: "lampu",
                     syllables: "Lam - pu",
                     sentence: "Lampu bersinar terang.",
                     emoji: "1f4a1"
                 },
-                en: { nameSpeech: "el", soundDisplay: "/l/", phonicsSpeech: "lll", word: "Lion", syllables: "L - i - on", sentence: "The brave lion roars.", emoji: "1f981" }
+                en: { nameDisplay: "L (/ɛl/)", nameSpeech: "L", soundDisplay: "/l/", phonicsSpeech: "lll, as in lion", word: "Lion", syllables: "L - i - on", sentence: "The brave lion roars.", emoji: "1f981" }
             },
             {
                 letter: "M", isVowel: false,
                 id: {
-                    nameDisplay: "em",
+                    nameDisplay: "M (em)",
                     nameNativeTTS: "em",
-                    nameFallbackTTS: "emm",
+                    nameFallbackTTS: "em",
                     soundDisplay: "/m/",
-                    phonicsNativeTTS: "meh. ma, mi, mu, mey, mo.",
-                    phonicsFallbackTTS: "meh. mah, mee, moo, meh, moh.",
+                    phonicsNativeTTS: "em, seperti matahari.",
+                    phonicsFallbackTTS: "em, matahari.",
                     word: "Matahari",
-                    wordNativeTTS: "ma, ta, ha, ri. matahari!",
-                    wordFallbackTTS: "mah, tah, hah, ree. mah-tah-hah-ree!",
+                    wordNativeTTS: "matahari",
+                    wordFallbackTTS: "matahari",
                     syllables: "Ma - ta - ha - ri",
                     sentence: "Matahari bersinar pagi hari.",
                     emoji: "1f31e"
                 },
-                en: { nameSpeech: "em", soundDisplay: "/m/", phonicsSpeech: "mmm", word: "Monkey", syllables: "Mon - key", sentence: "A funny little monkey.", emoji: "1f435" }
+                en: { nameDisplay: "M (/ɛm/)", nameSpeech: "M", soundDisplay: "/m/", phonicsSpeech: "mmm, as in monkey", word: "Monkey", syllables: "Mon - key", sentence: "A funny little monkey.", emoji: "1f435" }
             },
             {
                 letter: "N", isVowel: false,
                 id: {
-                    nameDisplay: "en",
+                    nameDisplay: "N (en)",
                     nameNativeTTS: "en",
-                    nameFallbackTTS: "enn",
+                    nameFallbackTTS: "en",
                     soundDisplay: "/n/",
-                    phonicsNativeTTS: "neh. na, ni, nu, ney, no.",
-                    phonicsFallbackTTS: "neh. nah, nee, noo, neh, noh.",
+                    phonicsNativeTTS: "en, seperti nanas.",
+                    phonicsFallbackTTS: "en, nanas.",
                     word: "Nanas",
-                    wordNativeTTS: "na, nas. nanas!",
-                    wordFallbackTTS: "nah, nahs. nah-nahs!",
+                    wordNativeTTS: "nanas",
+                    wordFallbackTTS: "nanas",
                     syllables: "Na - nas",
                     sentence: "Buah nanas berwarna kuning.",
                     emoji: "1f34d"
                 },
-                en: { nameSpeech: "en", soundDisplay: "/n/", phonicsSpeech: "nnn", word: "Nest", syllables: "N - e - st", sentence: "A bird nest in the tree.", emoji: "1fab9" }
+                en: { nameDisplay: "N (/ɛn/)", nameSpeech: "N", soundDisplay: "/n/", phonicsSpeech: "nnn, as in nest", word: "Nest", syllables: "N - e - st", sentence: "A bird nest in the tree.", emoji: "1fab9" }
             },
             {
                 letter: "O", isVowel: true,
                 id: {
-                    nameDisplay: "o",
+                    nameDisplay: "O (o)",
                     nameNativeTTS: "o",
-                    nameFallbackTTS: "o",
-                    soundDisplay: "/o/",
-                    phonicsNativeTTS: "oo. obeng.",
-                    phonicsFallbackTTS: "oh. oh-beng.",
+                    nameFallbackTTS: "oh",
+                    soundDisplay: "/o/ & /ɔ/",
+                    phonicsNativeTTS: "o, seperti obat, obeng, roti.",
+                    phonicsFallbackTTS: "oh, obat, obeng, roti.",
                     word: "Obeng",
-                    wordNativeTTS: "o, beng. obeng!",
-                    wordFallbackTTS: "oh, beng. oh-beng!",
+                    wordNativeTTS: "obeng",
+                    wordFallbackTTS: "obeng",
                     syllables: "O - beng",
                     sentence: "Ayah memperbaiki mainan.",
                     emoji: "1fa9b"
                 },
-                en: { nameSpeech: "oh", soundDisplay: "/ɒ/", phonicsSpeech: "aw", word: "Octopus", syllables: "Oc - to - pus", sentence: "An octopus has eight arms.", emoji: "1f419" }
+                en: { nameDisplay: "O (/oʊ/)", nameSpeech: "O", soundDisplay: "/ɒ/", phonicsSpeech: "aw, as in octopus", word: "Octopus", syllables: "Oc - to - pus", sentence: "An octopus has eight arms.", emoji: "1f419" }
             },
             {
                 letter: "P", isVowel: false,
                 id: {
-                    nameDisplay: "pe",
-                    nameNativeTTS: "pé",
-                    nameFallbackTTS: "pé",
+                    nameDisplay: "P (pe)",
+                    nameNativeTTS: "pe",
+                    nameFallbackTTS: "peh",
                     soundDisplay: "/p/",
-                    phonicsNativeTTS: "peh. pa, pi, pu, pey, po.",
-                    phonicsFallbackTTS: "peh. pah, pee, poo, peh, poh.",
+                    phonicsNativeTTS: "pe, seperti pisang.",
+                    phonicsFallbackTTS: "peh, pisang.",
                     word: "Pisang",
-                    wordNativeTTS: "pi, sang. pisang!",
-                    wordFallbackTTS: "pee, sahng. pee-sahng!",
+                    wordNativeTTS: "pisang",
+                    wordFallbackTTS: "pisang",
                     syllables: "Pi - sang",
                     sentence: "Monyet suka makan pisang.",
                     emoji: "1f34c"
                 },
-                en: { nameSpeech: "pee", soundDisplay: "/p/", phonicsSpeech: "puh", word: "Pig", syllables: "P - i - g", sentence: "A pink little pig.", emoji: "1f437" }
+                en: { nameDisplay: "P (/piː/)", nameSpeech: "P", soundDisplay: "/p/", phonicsSpeech: "puh, as in pig", word: "Pig", syllables: "P - i - g", sentence: "A pink little pig.", emoji: "1f437" }
             },
             {
                 letter: "Q", isVowel: false,
                 id: {
-                    nameDisplay: "ki",
+                    nameDisplay: "Q (ki)",
                     nameNativeTTS: "ki",
-                    nameFallbackTTS: "kee",
+                    nameFallbackTTS: "ki",
                     soundDisplay: "/k/",
-                    phonicsNativeTTS: "kih. quran.",
-                    phonicsFallbackTTS: "kee. koor-ahn.",
+                    phonicsNativeTTS: "ki, seperti quran.",
+                    phonicsFallbackTTS: "ki, quran.",
                     word: "Quran",
-                    wordNativeTTS: "qur, an. quran!",
-                    wordFallbackTTS: "koor, ahn. koor-ahn!",
+                    wordNativeTTS: "quran",
+                    wordFallbackTTS: "quran",
                     syllables: "Qur - an",
                     sentence: "Belajar membaca sejak kecil.",
                     emoji: "1f4d6"
                 },
-                en: { nameSpeech: "cue", soundDisplay: "/kw/", phonicsSpeech: "kwuh", word: "Queen", syllables: "Qu - ee - n", sentence: "The queen wears a crown.", emoji: "1f451" }
+                en: { nameDisplay: "Q (/kjuː/)", nameSpeech: "Q", soundDisplay: "/kw/", phonicsSpeech: "kwuh, as in queen", word: "Queen", syllables: "Qu - ee - n", sentence: "The queen wears a crown.", emoji: "1f451" }
             },
             {
                 letter: "R", isVowel: false,
                 id: {
-                    nameDisplay: "er",
+                    nameDisplay: "R (er)",
                     nameNativeTTS: "er",
-                    nameFallbackTTS: "err",
+                    nameFallbackTTS: "er",
                     soundDisplay: "/r/",
-                    phonicsNativeTTS: "reh. ra, ri, ru, rey, ro.",
-                    phonicsFallbackTTS: "reh. rah, ree, roo, reh, roh.",
+                    phonicsNativeTTS: "er, seperti roket.",
+                    phonicsFallbackTTS: "er, roket.",
                     word: "Roket",
-                    wordNativeTTS: "ro, ket. roket!",
-                    wordFallbackTTS: "roh, ket. roh-ket!",
+                    wordNativeTTS: "roket",
+                    wordFallbackTTS: "roket",
                     syllables: "Ro - ket",
                     sentence: "Roket meluncur ke angkasa.",
                     emoji: "1f680"
                 },
-                en: { nameSpeech: "ar", soundDisplay: "/r/", phonicsSpeech: "rrr", word: "Rabbit", syllables: "Rab - bit", sentence: "The rabbit hops fast.", emoji: "1f430" }
+                en: { nameDisplay: "R (/ɑːr/)", nameSpeech: "R", soundDisplay: "/r/", phonicsSpeech: "rrr, as in rabbit", word: "Rabbit", syllables: "Rab - bit", sentence: "The rabbit hops fast.", emoji: "1f430" }
             },
             {
                 letter: "S", isVowel: false,
                 id: {
-                    nameDisplay: "es",
+                    nameDisplay: "S (es)",
                     nameNativeTTS: "es",
-                    nameFallbackTTS: "ess",
+                    nameFallbackTTS: "es",
                     soundDisplay: "/s/",
-                    phonicsNativeTTS: "seh. sa, si, su, sey, so.",
-                    phonicsFallbackTTS: "seh. sah, see, soo, seh, soh.",
+                    phonicsNativeTTS: "es, seperti sapi.",
+                    phonicsFallbackTTS: "es, sapi.",
                     word: "Sapi",
-                    wordNativeTTS: "sa, pi. sapi!",
-                    wordFallbackTTS: "sah, pee. sah-pee!",
+                    wordNativeTTS: "sapi",
+                    wordFallbackTTS: "sapi",
                     syllables: "Sa - pi",
                     sentence: "Sapi menghasilkan susu sehat.",
                     emoji: "1f42e"
                 },
-                en: { nameSpeech: "es", soundDisplay: "/s/", phonicsSpeech: "sss", word: "Sun", syllables: "S - u - n", sentence: "The bright yellow sun.", emoji: "2600" }
+                en: { nameDisplay: "S (/ɛs/)", nameSpeech: "S", soundDisplay: "/s/", phonicsSpeech: "sss, as in sun", word: "Sun", syllables: "S - u - n", sentence: "The bright yellow sun.", emoji: "2600" }
             },
             {
                 letter: "T", isVowel: false,
                 id: {
-                    nameDisplay: "te",
-                    nameNativeTTS: "tey",
+                    nameDisplay: "T (te)",
+                    nameNativeTTS: "te",
                     nameFallbackTTS: "teh",
                     soundDisplay: "/t/",
-                    phonicsNativeTTS: "teh. ta, ti, tu, tey, to.",
-                    phonicsFallbackTTS: "teh. tah, tee, too, teh, toh.",
+                    phonicsNativeTTS: "te, seperti topi.",
+                    phonicsFallbackTTS: "teh, topi.",
                     word: "Topi",
-                    wordNativeTTS: "to, pi. topi!",
-                    wordFallbackTTS: "toh, pee. toh-pee!",
+                    wordNativeTTS: "topi",
+                    wordFallbackTTS: "topi",
                     syllables: "To - pi",
                     sentence: "Pakai topi saat panas.",
                     emoji: "1f9e2"
                 },
-                en: { nameSpeech: "tee", soundDisplay: "/t/", phonicsSpeech: "tuh", word: "Turtle", syllables: "Tur - tle", sentence: "A slow green turtle.", emoji: "1f422" }
+                en: { nameDisplay: "T (/tiː/)", nameSpeech: "T", soundDisplay: "/t/", phonicsSpeech: "tuh, as in turtle", word: "Turtle", syllables: "Tur - tle", sentence: "A slow green turtle.", emoji: "1f422" }
             },
             {
                 letter: "U", isVowel: true,
                 id: {
-                    nameDisplay: "u",
+                    nameDisplay: "U (u)",
                     nameNativeTTS: "u",
-                    nameFallbackTTS: "u",
-                    soundDisplay: "/u/",
-                    phonicsNativeTTS: "uu. ulat.",
-                    phonicsFallbackTTS: "oo. oo-laht.",
+                    nameFallbackTTS: "oo",
+                    soundDisplay: "/u/ & /ʊ/",
+                    phonicsNativeTTS: "u, seperti ulat, udang, buku.",
+                    phonicsFallbackTTS: "oo, ulat, udang, buku.",
                     word: "Ulat",
-                    wordNativeTTS: "u, lat. ulat!",
-                    wordFallbackTTS: "oo, laht. oo-laht!",
+                    wordNativeTTS: "ulat",
+                    wordFallbackTTS: "ulat",
                     syllables: "U - lat",
                     sentence: "Ulat berubah jadi kupu-kupu.",
                     emoji: "1f41b"
                 },
-                en: { nameSpeech: "you", soundDisplay: "/ʌ/", phonicsSpeech: "uh", word: "Umbrella", syllables: "Um - brel - la", sentence: "Use an umbrella in the rain.", emoji: "2602" }
+                en: { nameDisplay: "U (/juː/)", nameSpeech: "U", soundDisplay: "/ʌ/", phonicsSpeech: "uh, as in umbrella", word: "Umbrella", syllables: "Um - brel - la", sentence: "Use an umbrella in the rain.", emoji: "2602" }
             },
             {
                 letter: "V", isVowel: false,
                 id: {
-                    nameDisplay: "ve",
-                    nameNativeTTS: "vé",
-                    nameFallbackTTS: "vé",
+                    nameDisplay: "V (fe)",
+                    nameNativeTTS: "fe",
+                    nameFallbackTTS: "feh",
                     soundDisplay: "/v/",
-                    phonicsNativeTTS: "feh. fa, fi, fu, fey, fo.",
-                    phonicsFallbackTTS: "feh. fah, fee, foo, feh, foh.",
+                    phonicsNativeTTS: "fe, seperti vas dan biola.",
+                    phonicsFallbackTTS: "feh, biola.",
                     word: "Biola",
-                    wordNativeTTS: "bi, o, la. biola!",
-                    wordFallbackTTS: "bee, oh, lah. bee-oh-lah!",
+                    wordNativeTTS: "biola",
+                    wordFallbackTTS: "biola",
                     syllables: "Bi - o - la",
                     sentence: "Suara musik biola yang indah.",
                     emoji: "1f3bb"
                 },
-                en: { nameSpeech: "vee", soundDisplay: "/v/", phonicsSpeech: "vvv", word: "Van", syllables: "V - a - n", sentence: "Drive the family van.", emoji: "1f690" }
+                en: { nameDisplay: "V (/viː/)", nameSpeech: "V", soundDisplay: "/v/", phonicsSpeech: "vvv, as in van", word: "Van", syllables: "V - a - n", sentence: "Drive the family van.", emoji: "1f690" }
             },
             {
                 letter: "W", isVowel: false,
                 id: {
-                    nameDisplay: "we",
-                    nameNativeTTS: "wé",
-                    nameFallbackTTS: "wé",
+                    nameDisplay: "W (we)",
+                    nameNativeTTS: "we",
+                    nameFallbackTTS: "weh",
                     soundDisplay: "/w/",
-                    phonicsNativeTTS: "weh. wa, wi, wu, wey, wo.",
-                    phonicsFallbackTTS: "weh. wah, wee, woo, weh, woh.",
+                    phonicsNativeTTS: "we, seperti wortel.",
+                    phonicsFallbackTTS: "weh, wortel.",
                     word: "Wortel",
-                    wordNativeTTS: "wor, tel. wortel!",
-                    wordFallbackTTS: "wor, tell. wor-tell!",
+                    wordNativeTTS: "wortel",
+                    wordFallbackTTS: "wortel",
                     syllables: "Wor - tel",
                     sentence: "Wortel sehat untuk mata.",
                     emoji: "1f955"
                 },
-                en: { nameSpeech: "double you", soundDisplay: "/w/", phonicsSpeech: "wuh", word: "Watermelon", syllables: "Wa - ter - mel - on", sentence: "Juicy sweet watermelon.", emoji: "1f349" }
+                en: { nameDisplay: "W (/ˈdʌbəl.juː/)", nameSpeech: "W", soundDisplay: "/w/", phonicsSpeech: "wuh, as in watermelon", word: "Watermelon", syllables: "Wa - ter - mel - on", sentence: "Juicy sweet watermelon.", emoji: "1f349" }
             },
             {
                 letter: "X", isVowel: false,
                 id: {
-                    nameDisplay: "eks",
+                    nameDisplay: "X (eks)",
                     nameNativeTTS: "eks",
                     nameFallbackTTS: "eks",
                     soundDisplay: "/ks/",
-                    phonicsNativeTTS: "eks. xilofon.",
-                    phonicsFallbackTTS: "eks. see-loh-fohn.",
+                    phonicsNativeTTS: "eks, seperti xilofon.",
+                    phonicsFallbackTTS: "eks, xilofon.",
                     word: "Xilofon",
-                    wordNativeTTS: "xi, lo, fon. xilofon!",
-                    wordFallbackTTS: "see, loh, fohn. see-loh-fohn!",
+                    wordNativeTTS: "xilofon",
+                    wordFallbackTTS: "xilofon",
                     syllables: "Xi - lo - fon",
                     sentence: "Alat musik pukul warna-warni.",
                     emoji: "1f3b6"
                 },
-                en: { nameSpeech: "eks", soundDisplay: "/ks/", phonicsSpeech: "ks", word: "X-ray", syllables: "X - ray", sentence: "Doctor looks at an X-ray.", emoji: "1fa7b" }
+                en: { nameDisplay: "X (/ɛks/)", nameSpeech: "X", soundDisplay: "/ks/", phonicsSpeech: "ks, as in x-ray", word: "X-ray", syllables: "X - ray", sentence: "Doctor looks at an X-ray.", emoji: "1fa7b" }
             },
             {
                 letter: "Y", isVowel: false,
                 id: {
-                    nameDisplay: "ye",
-                    nameNativeTTS: "yé",
-                    nameFallbackTTS: "yé",
+                    nameDisplay: "Y (ye)",
+                    nameNativeTTS: "ye",
+                    nameFallbackTTS: "yeh",
                     soundDisplay: "/j/",
-                    phonicsNativeTTS: "yeh. ya, yi, yu, yey, yo.",
-                    phonicsFallbackTTS: "yeh. yah, yee, yoo, yeh, yoh.",
+                    phonicsNativeTTS: "ye, seperti yoyo.",
+                    phonicsFallbackTTS: "yeh, yoyo.",
                     word: "Yoyo",
-                    wordNativeTTS: "yo, yo. yoyo!",
-                    wordFallbackTTS: "yoh, yoh. yoh-yoh!",
+                    wordNativeTTS: "yoyo",
+                    wordFallbackTTS: "yoyo",
                     syllables: "Yo - yo",
                     sentence: "Bermain yoyo naik turun.",
                     emoji: "1fa80"
                 },
-                en: { nameSpeech: "why", soundDisplay: "/j/", phonicsSpeech: "yuh", word: "Yo-yo", syllables: "Yo - yo", sentence: "Spin the green yo-yo.", emoji: "1fa80" }
+                en: { nameDisplay: "Y (/waɪ/)", nameSpeech: "Y", soundDisplay: "/j/", phonicsSpeech: "yuh, as in yo-yo", word: "Yo-yo", syllables: "Yo - yo", sentence: "Spin the green yo-yo.", emoji: "1fa80" }
             },
             {
                 letter: "Z", isVowel: false,
                 id: {
-                    nameDisplay: "zet",
+                    nameDisplay: "Z (zet)",
                     nameNativeTTS: "zet",
                     nameFallbackTTS: "zet",
                     soundDisplay: "/z/",
-                    phonicsNativeTTS: "zeh. za, zi, zu, zey, zo.",
-                    phonicsFallbackTTS: "zeh. zah, zee, zoo, zeh, zoh.",
+                    phonicsNativeTTS: "zet, seperti zebra.",
+                    phonicsFallbackTTS: "zet, zebra.",
                     word: "Zebra",
-                    wordNativeTTS: "zey, bra. zebra!",
-                    wordFallbackTTS: "zeh, brah. zeh-brah!",
+                    wordNativeTTS: "zebra",
+                    wordFallbackTTS: "zebra",
                     syllables: "Ze - bra",
                     sentence: "Zebra punya belang hitam putih.",
                     emoji: "1f993"
                 },
-                en: { nameSpeech: "zee", soundDisplay: "/z/", phonicsSpeech: "zzz", word: "Zebra", syllables: "Ze - bra", sentence: "A zebra has black and white stripes.", emoji: "1f993" }
+                en: { nameDisplay: "Z (/ziː/)", nameSpeech: "Z", soundDisplay: "/z/", phonicsSpeech: "zzz, as in zebra", word: "Zebra", syllables: "Ze - bra", sentence: "A zebra has black and white stripes.", emoji: "1f993" }
             }
         ];
 
         /********************************************************************
-         * 1B. DATABASE MODE 2: MATRIKS SUKU KATA TERBUKA (BA-BI-BU-BE-BO)
-         * Catatan Fonetik: Ejaan "é" menandai bunyi E taling, berbeda dari E pepet.
+         * 1B. DATABASE MODE 2: MATRIKS SUKU KATA (ID: BA-BI-BU-BE-BO & EN: CV PHONICS)
          ********************************************************************/
         const SYLLABLE_MATRIX_DATA = [
-            { consonant: "B", syllables: ["BA", "BI", "BU", "BE", "BO"], nativeTTS: ["ba", "bi", "bu", "bé", "bo"], fallbackTTS: ["ba", "bi", "bu", "bé", "bo"], sampleWord: "BE - BEK → BEBEK", sampleNative: "bé, bek. bebek!", sampleFallback: "bé, bek. bebek!", emoji: "1f986" },
-            { consonant: "C", syllables: ["CA", "CI", "CU", "CE", "CO"], nativeTTS: ["ca", "ci", "cu", "cé", "co"], fallbackTTS: ["ca", "ci", "cu", "cé", "co"], sampleWord: "CE - RI → CERI", sampleNative: "cé, ri. ceri!", sampleFallback: "cé, ri. ceri!", emoji: "1f352" },
-            { consonant: "D", syllables: ["DA", "DI", "DU", "DE", "DO"], nativeTTS: ["da", "di", "du", "dé", "do"], fallbackTTS: ["da", "di", "du", "dé", "do"], sampleWord: "DA - DU → DADU", sampleNative: "da, du. dadu!", sampleFallback: "da, du. dadu!", emoji: "1f3b2" },
-            { consonant: "G", syllables: ["GA", "GI", "GU", "GE", "GO"], nativeTTS: ["ga", "gi", "gu", "gé", "go"], fallbackTTS: ["ga", "gi", "gu", "gé", "go"], sampleWord: "GI - GI → GIGI", sampleNative: "gi, gi. gigi!", sampleFallback: "gi, gi. gigi!", emoji: "1f9b7" },
-            { consonant: "H", syllables: ["HA", "HI", "HU", "HE", "HO"], nativeTTS: ["ha", "hi", "hu", "hé", "ho"], fallbackTTS: ["ha", "hi", "hu", "hé", "ho"], sampleWord: "HA - TI → HATI", sampleNative: "ha, ti. hati!", sampleFallback: "ha, ti. hati!", emoji: "2764" },
-            { consonant: "J", syllables: ["JA", "JI", "JU", "JE", "JO"], nativeTTS: ["ja", "ji", "ju", "jé", "jo"], fallbackTTS: ["ja", "ji", "ju", "jé", "jo"], sampleWord: "JA - RI → JARI", sampleNative: "ja, ri. jari!", sampleFallback: "ja, ri. jari!", emoji: "1f590" },
-            { consonant: "K", syllables: ["KA", "KI", "KU", "KE", "KO"], nativeTTS: ["ka", "ki", "ku", "ké", "ko"], fallbackTTS: ["ka", "ki", "ku", "ké", "ko"], sampleWord: "KU - DA → KUDA", sampleNative: "ku, da. kuda!", sampleFallback: "ku, da. kuda!", emoji: "1f434" },
-            { consonant: "L", syllables: ["LA", "LI", "LU", "LE", "LO"], nativeTTS: ["la", "li", "lu", "lé", "lo"], fallbackTTS: ["la", "li", "lu", "lé", "lo"], sampleWord: "LE - LE → LELE", sampleNative: "lé, lé. lele!", sampleFallback: "lé, lé. lele!", emoji: "1f41f" },
-            { consonant: "M", syllables: ["MA", "MI", "MU", "ME", "MO"], nativeTTS: ["ma", "mi", "mu", "mé", "mo"], fallbackTTS: ["ma", "mi", "mu", "mé", "mo"], sampleWord: "ME - JA → MEJA", sampleNative: "mé, ja. meja!", sampleFallback: "mé, ja. meja!", emoji: "1fa91" },
-            { consonant: "N", syllables: ["NA", "NI", "NU", "NE", "NO"], nativeTTS: ["na", "ni", "nu", "né", "no"], fallbackTTS: ["na", "ni", "nu", "né", "no"], sampleWord: "NA - SI → NASI", sampleNative: "na, si. nasi!", sampleFallback: "na, si. nasi!", emoji: "1f35a" },
-            { consonant: "P", syllables: ["PA", "PI", "PU", "PE", "PO"], nativeTTS: ["pa", "pi", "pu", "pé", "po"], fallbackTTS: ["pa", "pi", "pu", "pé", "po"], sampleWord: "PI - SANG → PISANG", sampleNative: "pi, sang. pisang!", sampleFallback: "pi, sang. pisang!", emoji: "1f34c" },
-            { consonant: "R", syllables: ["RA", "RI", "RU", "RE", "RO"], nativeTTS: ["ra", "ri", "ru", "ré", "ro"], fallbackTTS: ["ra", "ri", "ru", "ré", "ro"], sampleWord: "RO - TI → ROTI", sampleNative: "ro, ti. roti!", sampleFallback: "ro, ti. roti!", emoji: "1f35e" },
-            { consonant: "S", syllables: ["SA", "SI", "SU", "SE", "SO"], nativeTTS: ["sa", "si", "su", "sé", "so"], fallbackTTS: ["sa", "si", "su", "sé", "so"], sampleWord: "SA - PI → SAPI", sampleNative: "sa, pi. sapi!", sampleFallback: "sa, pi. sapi!", emoji: "1f42e" },
-            { consonant: "T", syllables: ["TA", "TI", "TU", "TE", "TO"], nativeTTS: ["ta", "ti", "tu", "té", "to"], fallbackTTS: ["ta", "ti", "tu", "té", "to"], sampleWord: "TO - PI → TOPI", sampleNative: "to, pi. topi!", sampleFallback: "to, pi. topi!", emoji: "1f9e2" }
+            {
+                consonant: "B",
+                syllables: ["BA", "BI", "BU", "BE", "BO"],
+                nativeTTS: ["ba", "bi", "bu", "be", "bo"],
+                enTTS: ["bah", "bih", "boo", "beh", "boh"],
+                sampleWord: "BE - BEK → BEBEK",
+                sampleNative: "bebek",
+                enSampleWord: "BA - LL → BALL (Bola)",
+                enSampleSpeech: "ball",
+                emoji: "1f986",
+                enEmoji: "26bd"
+            },
+            {
+                consonant: "C",
+                syllables: ["CA", "CI", "CU", "CE", "CO"],
+                nativeTTS: ["ca", "ci", "cu", "ce", "co"],
+                enTTS: ["ka", "si", "ku", "se", "ko"],
+                sampleWord: "CE - RI → CERI",
+                sampleNative: "ceri",
+                enSampleWord: "CA - T → CAT (Kucing)",
+                enSampleSpeech: "cat",
+                emoji: "1f352",
+                enEmoji: "1f431"
+            },
+            {
+                consonant: "D",
+                syllables: ["DA", "DI", "DU", "DE", "DO"],
+                nativeTTS: ["da", "di", "du", "de", "do"],
+                enTTS: ["dah", "dih", "doo", "deh", "doh"],
+                sampleWord: "DA - DU → DADU",
+                sampleNative: "dadu",
+                enSampleWord: "DO - G → DOG (Anjing)",
+                enSampleSpeech: "dog",
+                emoji: "1f3b2",
+                enEmoji: "1f436"
+            },
+            {
+                consonant: "G",
+                syllables: ["GA", "GI", "GU", "GE", "GO"],
+                nativeTTS: ["ga", "gi", "gu", "ge", "go"],
+                enTTS: ["gah", "gih", "goo", "geh", "goh"],
+                sampleWord: "GI - GI → GIGI",
+                sampleNative: "gigi",
+                enSampleWord: "GO - AT → GOAT (Kambing)",
+                enSampleSpeech: "goat",
+                emoji: "1f9b7",
+                enEmoji: "1f410"
+            },
+            {
+                consonant: "H",
+                syllables: ["HA", "HI", "HU", "HE", "HO"],
+                nativeTTS: ["ha", "hi", "hu", "he", "ho"],
+                enTTS: ["hah", "hih", "hoo", "heh", "hoh"],
+                sampleWord: "HA - TI → HATI",
+                sampleNative: "hati",
+                enSampleWord: "HA - T → HAT (Topi)",
+                enSampleSpeech: "hat",
+                emoji: "2764",
+                enEmoji: "1f452"
+            },
+            {
+                consonant: "J",
+                syllables: ["JA", "JI", "JU", "JE", "JO"],
+                nativeTTS: ["ja", "ji", "ju", "je", "jo"],
+                enTTS: ["jah", "jih", "joo", "jeh", "joh"],
+                sampleWord: "JA - RI → JARI",
+                sampleNative: "jari",
+                enSampleWord: "JU - ICE → JUICE (Jus)",
+                enSampleSpeech: "juice",
+                emoji: "1f590",
+                enEmoji: "1f9c3"
+            },
+            {
+                consonant: "K",
+                syllables: ["KA", "KI", "KU", "KE", "KO"],
+                nativeTTS: ["ka", "ki", "ku", "ke", "ko"],
+                enTTS: ["kah", "kih", "koo", "keh", "koh"],
+                sampleWord: "KU - DA → KUDA",
+                sampleNative: "kuda",
+                enSampleWord: "KI - TE → KITE (Layangan)",
+                enSampleSpeech: "kite",
+                emoji: "1f434",
+                enEmoji: "1fa81"
+            },
+            {
+                consonant: "L",
+                syllables: ["LA", "LI", "LU", "LE", "LO"],
+                nativeTTS: ["la", "li", "lu", "le", "lo"],
+                enTTS: ["lah", "lih", "loo", "leh", "loh"],
+                sampleWord: "LE - LE → LELE",
+                sampleNative: "lele",
+                enSampleWord: "LI - ON → LION (Singa)",
+                enSampleSpeech: "lion",
+                emoji: "1f41f",
+                enEmoji: "1f981"
+            },
+            {
+                consonant: "M",
+                syllables: ["MA", "MI", "MU", "ME", "MO"],
+                nativeTTS: ["ma", "mi", "mu", "me", "mo"],
+                enTTS: ["mah", "mih", "moo", "meh", "moh"],
+                sampleWord: "ME - JA → MEJA",
+                sampleNative: "meja",
+                enSampleWord: "MO - NKEY → MONKEY (Monyet)",
+                enSampleSpeech: "monkey",
+                emoji: "1fa91",
+                enEmoji: "1f435"
+            },
+            {
+                consonant: "N",
+                syllables: ["NA", "NI", "NU", "NE", "NO"],
+                nativeTTS: ["na", "ni", "nu", "ne", "no"],
+                enTTS: ["nah", "nih", "noo", "neh", "noh"],
+                sampleWord: "NA - SI → NASI",
+                sampleNative: "nasi",
+                enSampleWord: "NE - ST → NEST (Sarang)",
+                enSampleSpeech: "nest",
+                emoji: "1f35a",
+                enEmoji: "1fab9"
+            },
+            {
+                consonant: "P",
+                syllables: ["PA", "PI", "PU", "PE", "PO"],
+                nativeTTS: ["pa", "pi", "pu", "pe", "po"],
+                enTTS: ["pah", "pih", "poo", "peh", "poh"],
+                sampleWord: "PI - SANG → PISANG",
+                sampleNative: "pisang",
+                enSampleWord: "PI - G → PIG (Babi)",
+                enSampleSpeech: "pig",
+                emoji: "1f34c",
+                enEmoji: "1f437"
+            },
+            {
+                consonant: "R",
+                syllables: ["RA", "RI", "RU", "RE", "RO"],
+                nativeTTS: ["ra", "ri", "ru", "re", "ro"],
+                enTTS: ["rah", "rih", "roo", "reh", "roh"],
+                sampleWord: "RO - TI → ROTI",
+                sampleNative: "roti",
+                enSampleWord: "RA - BBIT → RABBIT (Kelinci)",
+                enSampleSpeech: "rabbit",
+                emoji: "1f35e",
+                enEmoji: "1f430"
+            },
+            {
+                consonant: "S",
+                syllables: ["SA", "SI", "SU", "SE", "SO"],
+                nativeTTS: ["sa", "si", "su", "se", "so"],
+                enTTS: ["sah", "sih", "soo", "seh", "soh"],
+                sampleWord: "SA - PI → SAPI",
+                sampleNative: "sapi",
+                enSampleWord: "SU - N → SUN (Matahari)",
+                enSampleSpeech: "sun",
+                emoji: "1f42e",
+                enEmoji: "2600"
+            },
+            {
+                consonant: "T",
+                syllables: ["TA", "TI", "TU", "TE", "TO"],
+                nativeTTS: ["ta", "ti", "tu", "te", "to"],
+                enTTS: ["tah", "tih", "too", "teh", "toh"],
+                sampleWord: "TO - PI → TOPI",
+                sampleNative: "topi",
+                enSampleWord: "TU - RTLE → TURTLE (Kura-kura)",
+                enSampleSpeech: "turtle",
+                emoji: "1f9e2",
+                enEmoji: "1f422"
+            }
         ];
 
         const INDONESIAN_SYLLABLE_EXAMPLES = {
@@ -1159,11 +1317,85 @@
         };
 
         const INDONESIAN_VOWEL_GUIDES = {
-            A: "Huruf A berbunyi seperti bunyi awal kata apel.",
-            E: "Huruf E memiliki dua bunyi. E taling seperti bunyi awal kata ekor, dan E pepet seperti bunyi awal kata elang.",
-            I: "Huruf I berbunyi seperti bunyi awal kata ikan.",
-            O: "Huruf O berbunyi seperti bunyi awal kata obeng.",
-            U: "Huruf U berbunyi seperti bunyi awal kata ulat."
+            A: "Bunyi huruf A: a, seperti pada kata apel, ayam, dan mata.",
+            E: "Huruf E punya tiga variasi bunyi: e taling tertutup seperti ekor dan meja, e taling terbuka seperti bebek dan nenek, serta e pepet seperti elang dan enam.",
+            I: "Bunyi huruf I: i terbuka seperti ikan dan ibu, serta i tertutup seperti itik dan adik.",
+            O: "Bunyi huruf O: o tertutup seperti toko dan bola, serta o terbuka seperti obeng, roti, dan pohon.",
+            U: "Bunyi huruf U: u terbuka seperti ulat dan buku, serta u tertutup seperti telur dan daun."
+        };
+
+        // Variasi Alofon Vokal Bahasa Indonesia (Sesuai Tata Bahasa Baku Bahasa Indonesia & KBBI)
+        const INDONESIAN_VOWEL_VARIANTS = {
+            A: [
+                {
+                    icon: "🍎",
+                    title: "1. Vokal A Awal & Terbuka (/a/)",
+                    examples: "<strong>A-pel</strong>, <strong>A-yam</strong>, <strong>Ba-ca</strong>",
+                    tts: "Bunyi a pada suku kata terbuka: apel, ayam, baca."
+                },
+                {
+                    icon: "☁️",
+                    title: "2. Vokal A Suku Kata Tertutup (/a/)",
+                    examples: "<strong>A-wan</strong>, <strong>Ma-kan</strong>, <strong>Ja-lan</strong>",
+                    tts: "Bunyi a pada suku kata tertutup: awan, makan, jalan."
+                }
+            ],
+            I: [
+                {
+                    icon: "🐟",
+                    title: "1. Vokal I Terbuka / Tinggi (/i/)",
+                    examples: "<strong>I-kan</strong>, <strong>I-bu</strong>, <strong>Gi-gi</strong>",
+                    tts: "Bunyi i jelas pada suku kata terbuka: ikan, ibu, gigi."
+                },
+                {
+                    icon: "🐥",
+                    title: "2. Vokal I Tertutup / Alofon (/ɪ/)",
+                    examples: "<strong>I-tik</strong>, <strong>A-dik</strong>, <strong>Ba-tik</strong>",
+                    tts: "Bunyi i pada suku kata tertutup: itik, adik, batik."
+                }
+            ],
+            U: [
+                {
+                    icon: "🐛",
+                    title: "1. Vokal U Terbuka / Tinggi (/u/)",
+                    examples: "<strong>U-lat</strong>, <strong>Bu-ku</strong>, <strong>Su-su</strong>",
+                    tts: "Bunyi u jelas pada suku kata terbuka: ulat, buku, susu."
+                },
+                {
+                    icon: "🥚",
+                    title: "2. Vokal U Tertutup / Alofon (/ʊ/)",
+                    examples: "<strong>Te-lur</strong>, <strong>Da-un</strong>, <strong>Se-mut</strong>",
+                    tts: "Bunyi u pada suku kata tertutup: telur, daun, semut."
+                }
+            ],
+            E: [
+                {
+                    icon: "🪑",
+                    title: "1. Bunyi É Taling (/e/ & /ɛ/)",
+                    examples: "<strong>É-kor</strong>, <strong>Mé-ja</strong>, <strong>Bè-bèk</strong>",
+                    tts: "Bunyi e taling atau terbuka, contohnya: ekor, meja, bebek, lele."
+                },
+                {
+                    icon: "🦅",
+                    title: "2. Bunyi E Pepet (/ə/)",
+                    examples: "<strong>E-lang</strong>, <strong>E-nam</strong>, <strong>E-mas</strong>",
+                    tts: "Bunyi e pepet, contohnya: elang, enam, emas, empat."
+                }
+            ],
+            O: [
+                {
+                    icon: "⚽",
+                    title: "1. Vokal O Bulat Terbuka (/o/)",
+                    examples: "<strong>Bo-la</strong>, <strong>To-ko</strong>, <strong>Fo-to</strong>",
+                    tts: "Bunyi o bulat pada suku kata terbuka: bola, toko, foto."
+                },
+                {
+                    icon: "🪛",
+                    title: "2. Vokal O Alofon Terbuka (/ɔ/)",
+                    examples: "<strong>O-beng</strong>, <strong>Ro-ti</strong>, <strong>Po-hon</strong>",
+                    tts: "Bunyi o pada kata: obeng, roti, pohon, balon."
+                }
+            ]
         };
 
         /********************************************************************
@@ -1171,18 +1403,18 @@
          ********************************************************************/
         const BLENDING_WORDS = {
             id: [
-                { word: "BAJU", units: ["BA", "JU"], nativeSounds: ["ba.", "ju."], fallbackSounds: ["bah", "joo"], fullNative: "ba, ju. baju!", fullFallback: "bah, joo. bah-joo!", meaning: "Pakaian (Shirt)", emoji: "1f455" },
-                { word: "BOLA", units: ["BO", "LA"], nativeSounds: ["bo.", "la."], fallbackSounds: ["boh", "lah"], fullNative: "bo, la. bola!", fullFallback: "boh, lah. boh-lah!", meaning: "Mainan Bundar (Ball)", emoji: "26bd" },
-                { word: "BUKU", units: ["BU", "KU"], nativeSounds: ["bu.", "ku."], fallbackSounds: ["boo", "koo"], fullNative: "bu, ku. buku!", fullFallback: "boo, koo. boo-koo!", meaning: "Bahan Bacaan (Book)", emoji: "1f4d6" },
-                { word: "KUDA", units: ["KU", "DA"], nativeSounds: ["ku.", "da."], fallbackSounds: ["koo", "dah"], fullNative: "ku, da. kuda!", fullFallback: "koo, dah. koo-dah!", meaning: "Hewan Cepat (Horse)", emoji: "1f434" },
-                { word: "SAPI", units: ["SA", "PI"], nativeSounds: ["sa.", "pi."], fallbackSounds: ["sah", "pee"], fullNative: "sa, pi. sapi!", fullFallback: "sah, pee. sah-pee!", meaning: "Penghasil Susu (Cow)", emoji: "1f42e" },
-                { word: "ROTI", units: ["RO", "TI"], nativeSounds: ["ro.", "ti."], fallbackSounds: ["roh", "tee"], fullNative: "ro, ti. roti!", fullFallback: "roh, tee. roh-tee!", meaning: "Makanan Sarapan (Bread)", emoji: "1f35e" },
-                { word: "MATA", units: ["MA", "TA"], nativeSounds: ["ma.", "ta."], fallbackSounds: ["mah", "tah"], fullNative: "ma, ta. mata!", fullFallback: "mah, tah. mah-tah!", meaning: "Indra Penglihat (Eye)", emoji: "1f441" },
-                { word: "GIGI", units: ["GI", "GI"], nativeSounds: ["gi.", "gi."], fallbackSounds: ["gee", "gee"], fullNative: "gi, gi. gigi!", fullFallback: "gee, gee. gee-gee!", meaning: "Untuk Mengunyah (Tooth)", emoji: "1f9b7" },
-                { word: "KAKI", units: ["KA", "KI"], nativeSounds: ["ka.", "ki."], fallbackSounds: ["kah", "kee"], fullNative: "ka, ki. kaki!", fullFallback: "kah, kee. kah-kee!", meaning: "Untuk Berjalan (Foot)", emoji: "1f9b6" },
-                { word: "TOPI", units: ["TO", "PI"], nativeSounds: ["to.", "pi."], fallbackSounds: ["toh", "pee"], fullNative: "to, pi. topi!", fullFallback: "toh, pee. toh-pee!", meaning: "Pelindung Kepala (Cap)", emoji: "1f9e2" },
-                { word: "MEJA", units: ["ME", "JA"], nativeSounds: ["mey.", "ja."], fallbackSounds: ["meh", "jah"], fullNative: "mey, ja. meja!", fullFallback: "meh, jah. meh-jah!", meaning: "Tempat Menulis (Table)", emoji: "1fa91" },
-                { word: "RUSA", units: ["RU", "SA"], nativeSounds: ["ru.", "sa."], fallbackSounds: ["roo", "sah"], fullNative: "ru, sa. rusa!", fullFallback: "roo, sah. roo-sah!", meaning: "Hewan Bertanduk (Deer)", emoji: "1f98c" }
+                { word: "BAJU", units: ["BA", "JU"], nativeSounds: ["ba", "ju"], fallbackSounds: ["ba", "ju"], fullNative: "ba, ju. baju!", fullFallback: "ba, ju. baju!", meaning: "Pakaian (Shirt)", emoji: "1f455" },
+                { word: "BOLA", units: ["BO", "LA"], nativeSounds: ["bo", "la"], fallbackSounds: ["bo", "la"], fullNative: "bo, la. bola!", fullFallback: "bo, la. bola!", meaning: "Mainan Bundar (Ball)", emoji: "26bd" },
+                { word: "BUKU", units: ["BU", "KU"], nativeSounds: ["bu", "ku"], fallbackSounds: ["bu", "ku"], fullNative: "bu, ku. buku!", fullFallback: "bu, ku. buku!", meaning: "Bahan Bacaan (Book)", emoji: "1f4d6" },
+                { word: "KUDA", units: ["KU", "DA"], nativeSounds: ["ku", "da"], fallbackSounds: ["ku", "da"], fullNative: "ku, da. kuda!", fullFallback: "ku, da. kuda!", meaning: "Hewan Cepat (Horse)", emoji: "1f434" },
+                { word: "SAPI", units: ["SA", "PI"], nativeSounds: ["sa", "pi"], fallbackSounds: ["sa", "pi"], fullNative: "sa, pi. sapi!", fullFallback: "sa, pi. sapi!", meaning: "Penghasil Susu (Cow)", emoji: "1f42e" },
+                { word: "ROTI", units: ["RO", "TI"], nativeSounds: ["ro", "ti"], fallbackSounds: ["ro", "ti"], fullNative: "ro, ti. roti!", fullFallback: "ro, ti. roti!", meaning: "Makanan Sarapan (Bread)", emoji: "1f35e" },
+                { word: "MATA", units: ["MA", "TA"], nativeSounds: ["ma", "ta"], fallbackSounds: ["ma", "ta"], fullNative: "ma, ta. mata!", fullFallback: "ma, ta. mata!", meaning: "Indra Penglihat (Eye)", emoji: "1f441" },
+                { word: "GIGI", units: ["GI", "GI"], nativeSounds: ["gi", "gi"], fallbackSounds: ["gi", "gi"], fullNative: "gi, gi. gigi!", fullFallback: "gi, gi. gigi!", meaning: "Untuk Mengunyah (Tooth)", emoji: "1f9b7" },
+                { word: "KAKI", units: ["KA", "KI"], nativeSounds: ["ka", "ki"], fallbackSounds: ["ka", "ki"], fullNative: "ka, ki. kaki!", fullFallback: "ka, ki. kaki!", meaning: "Untuk Berjalan (Foot)", emoji: "1f9b6" },
+                { word: "TOPI", units: ["TO", "PI"], nativeSounds: ["to", "pi"], fallbackSounds: ["to", "pi"], fullNative: "to, pi. topi!", fullFallback: "to, pi. topi!", meaning: "Pelindung Kepala (Cap)", emoji: "1f9e2" },
+                { word: "MEJA", units: ["ME", "JA"], nativeSounds: ["me", "ja"], fallbackSounds: ["me", "ja"], fullNative: "me, ja. meja!", fullFallback: "me, ja. meja!", meaning: "Tempat Menulis (Table)", emoji: "1fa91" },
+                { word: "RUSA", units: ["RU", "SA"], nativeSounds: ["ru", "sa"], fallbackSounds: ["ru", "sa"], fullNative: "ru, sa. rusa!", fullFallback: "ru, sa. rusa!", meaning: "Hewan Bertanduk (Deer)", emoji: "1f98c" }
             ],
             en: [
                 { word: "CAT", units: ["C", "A", "T"], nativeSounds: ["kuh", "aah", "tuh"], fallbackSounds: ["kuh", "aah", "tuh"], fullNative: "kuh, aah, tuh. cat!", fullFallback: "cat", meaning: "Kucing Lucu", emoji: "1f431" },
@@ -1204,18 +1436,17 @@
         let currentLetterIndex = 0;
         let currentConsonantIndex = 0;
         let currentBlendIndex = 0;
-        let starsCount = parseInt(localStorage.getItem('bintangBaca_stars') || '0', 10);
+        let starsCount = parseInt(localStorage.getItem('AyoBaca_stars') || '0', 10);
         let quizStreak = 0;
         let currentQuizAnswerIndex = 0;
         let autoReadInterval = null;
 
         // Pengaturan Mesin Suara
-        let audioEngineMode = localStorage.getItem('bintangBaca_engine_v2') || 'cloud'; // 'phonetic' atau 'cloud'
-        let userSpeechRate = parseFloat(localStorage.getItem('bintangBaca_rate') || '0.85');
-        let selectedIndonesianVoiceURI = localStorage.getItem('bintangBaca_idVoiceURI') || '';
+        let audioEngineMode = localStorage.getItem('AyoBaca_engine') || 'phonetic'; // 'phonetic' atau 'cloud'
+        let userSpeechRate = parseFloat(localStorage.getItem('AyoBaca_rate') || '0.85');
+        let selectedIndonesianVoiceURI = localStorage.getItem('AyoBaca_idVoiceURI') || '';
         let hasNativeIndonesianVoice = false;
         let cloudAudioPlayer = new Audio();
-        let activeSpeechRequestId = 0;
 
         // State Kanvas Jejak Huruf
         let traceCanvas, traceCtx;
@@ -1368,14 +1599,14 @@
 
         function onManualVoiceSelect(voiceURI) {
             selectedIndonesianVoiceURI = voiceURI;
-            localStorage.setItem('bintangBaca_idVoiceURI', voiceURI);
+            localStorage.setItem('AyoBaca_idVoiceURI', voiceURI);
             populateVoiceDropdown();
             testIndonesianVoiceSample();
         }
 
         function setAudioEngineMode(mode) {
             audioEngineMode = mode;
-            localStorage.setItem('bintangBaca_engine_v2', mode);
+            localStorage.setItem('AyoBaca_engine', mode);
             playSoundEffect('pop');
 
             const btnPhonetic = document.getElementById('btnEnginePhonetic');
@@ -1392,8 +1623,7 @@
 
         function updateSpeechRate(val) {
             userSpeechRate = parseFloat(val);
-            localStorage.setItem('bintangBaca_rate', val);
-            cloudAudioPlayer.playbackRate = userSpeechRate;
+            localStorage.setItem('AyoBaca_rate', val);
             document.getElementById('speechRateLabel').textContent = `${userSpeechRate.toFixed(2)}x`;
         }
 
@@ -1413,54 +1643,43 @@
 
         function testIndonesianVoiceSample() {
             speakIndonesianNatural(
-                "Halo teman kecil! Mari belajar membaca. Huruf A, bé, cé, dé, é. Contoh kata: batu, bibir, buku, bebek, bola.",
-                "Halo teman kecil! Mari belajar membaca. Huruf A, bé, cé, dé, é. Contoh kata: batu, bibir, buku, bebek, bola."
+                "Halo teman kecil! Mari belajar huruf vokal: a, i, u, e, o. Apel, ikan, ulat, ekor, elang, obeng. Suku kata: batu, bibir, buku, bebek, bola!",
+                "Halo teman kecil! Mari belajar huruf vokal: a, i, u, e, o. Apel, ikan, ulat, ekor, elang, obeng."
             );
         }
 
         function speakIndonesianNatural(nativeText, fallbackText = null) {
             const textForID = nativeText;
             const textForFallback = fallbackText || nativeText;
-            const requestId = ++activeSpeechRequestId;
-            let hasFallenBack = false;
-
-            const fallbackToDeviceSpeech = () => {
-                if (hasFallenBack || requestId !== activeSpeechRequestId) return;
-                hasFallenBack = true;
-                speakWithWebSpeechID(textForID, textForFallback);
-            };
 
             if (audioEngineMode === 'cloud' && navigator.onLine) {
                 try {
                     cloudAudioPlayer.pause();
                     const encoded = encodeURIComponent(textForID);
                     cloudAudioPlayer.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=id&client=tw-ob&q=${encoded}`;
-                    cloudAudioPlayer.playbackRate = userSpeechRate;
-                    cloudAudioPlayer.onerror = fallbackToDeviceSpeech;
+                    cloudAudioPlayer.playbackRate = Math.min(1.1, Math.max(0.8, userSpeechRate + 0.08));
                     const playPromise = cloudAudioPlayer.play();
                     if (playPromise !== undefined) {
-                        playPromise.catch(fallbackToDeviceSpeech);
+                        playPromise.catch(() => {
+                            speakWithWebSpeechID(textForID, textForFallback);
+                        });
+                        return;
                     }
-                    return;
                 } catch (e) {
-                    fallbackToDeviceSpeech();
+                    speakWithWebSpeechID(textForID, textForFallback);
+                    return;
                 }
-                return;
             }
 
-            fallbackToDeviceSpeech();
+            speakWithWebSpeechID(textForID, textForFallback);
         }
 
         function speakWithWebSpeechID(textForID, textForFallback) {
-            if (!('speechSynthesis' in window)) {
-                const status = document.getElementById('activeVoiceStatusText');
-                if (status) status.textContent = 'Browser ini tidak mendukung pemutaran suara. Coba browser lain atau aktifkan suara perangkat.';
-                return;
-            }
+            if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
 
             const bestIDVoice = getBestIndonesianVoice();
-            const useText = textForID;
+            const useText = bestIDVoice ? textForID : textForFallback;
 
             const utter = new SpeechSynthesisUtterance(useText);
             utter.lang = 'id-ID';
@@ -1498,7 +1717,7 @@
 
         function addStars(amount = 1) {
             starsCount += amount;
-            localStorage.setItem('bintangBaca_stars', starsCount.toString());
+            localStorage.setItem('AyoBaca_stars', starsCount.toString());
             const starEl = document.getElementById('starCountDisplay');
             starEl.textContent = starsCount;
             starEl.classList.remove('animate-pop');
@@ -1576,6 +1795,26 @@
             document.getElementById('btnTitleSound').textContent = isID ? "Bunyi & Suku Kata" : "Phonics Sound";
             document.getElementById('btnLabelWord').textContent = isID ? "Langkah 3" : "Step 3";
             document.getElementById('btnTitleWord').textContent = isID ? "Eja & Baca" : "Blend & Read";
+
+            // Lokalisasi Mode 2 (Syllables / Ba-Bi-Bu)
+            document.getElementById('scientificBadgeSyllable').textContent = isID
+                ? "🗣️ Metode Kupas Rangkai Suku Kata (KV: A - I - U - E - O)"
+                : "🗣️ Consonant-Vowel (CV) Syllable Blending Matrix";
+            document.getElementById('syllableHeaderTitle').textContent = isID
+                ? "Pilih Huruf Konsonan Lalu Ketuk Suku Katanya!"
+                : "Pick a Consonant and Tap Each Open Syllable!";
+            document.getElementById('btnSingSyllables').textContent = isID
+                ? "Ucapkan Semua (A-I-U-E-O)"
+                : "Speak All (A-I-U-E-O)";
+            document.getElementById('syllableExampleLabel').textContent = isID
+                ? "CONTOH KATA SUKU KATA INI:"
+                : "EXAMPLE WORD FOR THIS CONSONANT:";
+            document.getElementById('syllableExamplePhonetic').textContent = isID
+                ? "Pelafalan Murni Indonesia"
+                : "Natural English Pronunciation";
+            document.getElementById('btnReadSyllableWord').textContent = isID
+                ? "Dengar Kata"
+                : "Hear Word";
 
             document.getElementById('scientificBadge2').textContent = isID
                 ? "✍️ Metode Multisensori VAKT (Visual-Auditori-Kinestetik-Taktil)"
@@ -1731,8 +1970,8 @@
             card.classList.add('animate-pop');
 
             document.getElementById('phoneticChip').textContent = isID
-                ? `Lafal Huruf: "${langData.nameDisplay.toUpperCase()}" • Bunyi: ${langData.soundDisplay}`
-                : `Name: "${langData.nameSpeech.toUpperCase()}" • Phonics: ${langData.soundDisplay}`;
+                ? `Lafal Huruf: "${langData.nameDisplay}" • Bunyi: ${langData.soundDisplay}`
+                : `Letter: "${langData.nameDisplay}" • Phonics: ${langData.soundDisplay}`;
 
             const vowelBadge = document.getElementById('vowelBadge');
             if (item.isVowel) {
@@ -1757,29 +1996,37 @@
 
             document.getElementById('wordSentenceDisplay').textContent = `"${langData.sentence}"`;
 
-            // Tampilkan panel edukasi 2 bunyi huruf E (E Taling vs E Pepet) khusus saat huruf E dipilih dalam Bahasa Indonesia
+            // Tampilkan panel variasi bunyi vokal (A, I, U, E, O) saat huruf vokal dipilih dalam Bahasa Indonesia
             const ePanel = document.getElementById('specialEVariantsPanel');
-            if (ePanel) {
-                if (isID && item.letter === 'E') {
+            const variantsGrid = document.getElementById('vowelVariantsGrid');
+            const variantsTitle = document.getElementById('vowelVariantsTitle');
+
+            if (ePanel && variantsGrid) {
+                if (isID && item.isVowel && INDONESIAN_VOWEL_VARIANTS[item.letter]) {
                     ePanel.classList.remove('hidden');
+                    variantsTitle.textContent = `💡 Variasi Bunyi Vokal "${item.letter}" dalam Bahasa Indonesia (Ketuk untuk Dengar):`;
+                    variantsGrid.innerHTML = '';
+
+                    INDONESIAN_VOWEL_VARIANTS[item.letter].forEach((variant) => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.onclick = () => {
+                            playSoundEffect('pop');
+                            speakIndonesianNatural(variant.tts, variant.tts);
+                        };
+                        btn.className = "btn-3d bg-white hover:bg-amber-50 text-slate-800 p-2.5 rounded-xl border-2 border-amber-300 flex items-center gap-2.5 text-left";
+                        btn.innerHTML = `
+                            <span class="text-2xl">${variant.icon}</span>
+                            <div class="leading-tight">
+                                <div class="font-kid font-bold text-sm text-sky-700">${variant.title}</div>
+                                <div class="text-xs font-bold text-slate-600">Contoh: ${variant.examples}</div>
+                            </div>
+                        `;
+                        variantsGrid.appendChild(btn);
+                    });
                 } else {
                     ePanel.classList.add('hidden');
                 }
-            }
-        }
-
-        function speakEVariant(variantType) {
-            playSoundEffect('pop');
-            if (variantType === 'taling') {
-                speakIndonesianNatural(
-                    "Bunyi E taling seperti pada kata ekor. Contoh kata: ekor, bebek, meja.",
-                    "Bunyi E taling seperti pada kata ekor. Contoh kata: ekor, bebek, meja."
-                );
-            } else {
-                speakIndonesianNatural(
-                    "Bunyi E pepet seperti pada kata elang. Contoh kata: elang, enam, emas.",
-                    "Bunyi E pepet seperti pada kata elang. Contoh kata: elang, enam, emas."
-                );
             }
         }
 
@@ -1788,11 +2035,11 @@
             playSoundEffect('pop');
             if (currentLang === 'id') {
                 speakIndonesianNatural(
-                    `huruf ${item.id.nameNativeTTS}.`,
-                    `hoo-roof ${item.id.nameFallbackTTS}.`
+                    `Huruf ${item.id.nameNativeTTS}.`,
+                    `Huruf ${item.id.nameFallbackTTS}.`
                 );
             } else {
-                speakText(`Letter ${item.en.nameSpeech}`, 'en');
+                speakText(`Letter ${item.letter}.`, 'en');
             }
         }
 
@@ -1803,11 +2050,11 @@
                 const syllableExamples = INDONESIAN_SYLLABLE_EXAMPLES[item.letter];
                 const spokenGuide = INDONESIAN_VOWEL_GUIDES[item.letter]
                     || (syllableExamples
-                        ? `Contoh kata untuk huruf ${item.letter}: ${syllableExamples.join(', ')}.`
-                        : `Contoh kata untuk huruf ${item.letter}: ${item.id.word}.`);
+                        ? `Contoh kata huruf ${item.id.nameNativeTTS}: ${syllableExamples.join(', ')}.`
+                        : `Contoh kata huruf ${item.id.nameNativeTTS}: ${item.id.word}.`);
                 speakIndonesianNatural(spokenGuide, spokenGuide);
             } else {
-                speakText(`Makes the sound, ${item.en.phonicsSpeech}`, 'en');
+                speakText(`${item.en.phonicsSpeech}.`, 'en');
             }
         }
 
@@ -1816,11 +2063,11 @@
             playSoundEffect('pop');
             if (currentLang === 'id') {
                 speakIndonesianNatural(
-                    `huruf ${item.id.nameNativeTTS}, contoh kata ${item.id.word}. ${item.id.sentence}`,
-                    `huruf ${item.id.nameNativeTTS}, contoh kata ${item.id.word}. ${item.id.sentence}`
+                    `Huruf ${item.id.nameNativeTTS}, untuk ${item.id.word}. ${item.id.sentence}`,
+                    `Huruf ${item.id.nameNativeTTS}, untuk ${item.id.word}. ${item.id.sentence}`
                 );
             } else {
-                speakText(`${item.en.nameSpeech} is for ${item.en.word}. ${item.en.sentence}`, 'en');
+                speakText(`${item.letter} is for ${item.en.word}. ${item.en.sentence}`, 'en');
             }
         }
 
@@ -1828,11 +2075,11 @@
             const item = ALPHABET_DATA[currentLetterIndex];
             if (currentLang === 'id') {
                 speakIndonesianNatural(
-                    `${item.id.nameNativeTTS}. ${item.id.word}.`,
-                    `${item.id.nameNativeTTS}. ${item.id.word}.`
+                    `Huruf ${item.id.nameNativeTTS}. ${item.id.word}.`,
+                    `Huruf ${item.id.nameNativeTTS}. ${item.id.word}.`
                 );
             } else {
-                speakText(`${item.en.nameSpeech}. ${item.en.word}`, 'en');
+                speakText(`${item.letter}. ${item.en.word}.`, 'en');
             }
         }
 
@@ -1865,10 +2112,11 @@
         }
 
         /********************************************************************
-         * 7B. MODE 2: MATRIKS SUKU KATA TERBUKA (BA - BI - BU - BE - BO)
+         * 7B. MODE 2: MATRIKS SUKU KATA TERBUKA (ID & EN BILINGUAL)
          ********************************************************************/
         function renderSyllableMatrixMode() {
             const item = SYLLABLE_MATRIX_DATA[currentConsonantIndex];
+            const isID = currentLang === 'id';
             const selectorGrid = document.getElementById('consonantSelectorGrid');
             selectorGrid.innerHTML = '';
 
@@ -1900,21 +2148,21 @@
             const vowels = ['A', 'I', 'U', 'E', 'O'];
 
             item.syllables.forEach((syl, vIdx) => {
-                const exampleWord = INDONESIAN_SYLLABLE_EXAMPLES[item.consonant][vIdx];
                 const card = document.createElement('button');
                 card.id = `syl-card-${vIdx}`;
                 card.onclick = () => speakSingleMatrixSyllable(vIdx);
                 card.className = `btn-3d bg-gradient-to-b ${cardBgColors[vIdx]} text-white rounded-3xl p-5 border-4 flex flex-col items-center justify-center gap-1 transition-transform hover:scale-105`;
+                const phoneticLabel = isID ? syl.toLowerCase() : item.enTTS[vIdx];
                 card.innerHTML = `
                     <span class="text-xs font-extrabold uppercase opacity-90">${item.consonant} + ${vowels[vIdx]}</span>
                     <span class="font-kid font-bold text-4xl sm:text-5xl tracking-wide">${syl}</span>
-                    <span class="text-xs font-bold bg-white/25 px-2.5 py-0.5 rounded-full mt-1">🔊 ${exampleWord}</span>
+                    <span class="text-xs font-bold bg-white/25 px-2.5 py-0.5 rounded-full mt-1">🔊 "${phoneticLabel}"</span>
                 `;
                 container.appendChild(card);
             });
 
-            document.getElementById('syllableExampleImg').src = `${TWEMOJI_BASE}${item.emoji}.svg`;
-            document.getElementById('syllableExampleWord').textContent = item.sampleWord;
+            document.getElementById('syllableExampleImg').src = `${TWEMOJI_BASE}${isID ? item.emoji : item.enEmoji}.svg`;
+            document.getElementById('syllableExampleWord').textContent = isID ? item.sampleWord : item.enSampleWord;
         }
 
         function speakSingleMatrixSyllable(vIdx) {
@@ -1925,8 +2173,13 @@
                 card.classList.add('phoneme-active');
                 setTimeout(() => card.classList.remove('phoneme-active'), 500);
             }
-            const exampleWord = INDONESIAN_SYLLABLE_EXAMPLES[item.consonant][vIdx];
-            speakIndonesianNatural(`Contoh kata: ${exampleWord}.`);
+            if (currentLang === 'id') {
+                const syllable = item.nativeTTS[vIdx];
+                const sampleWord = INDONESIAN_SYLLABLE_EXAMPLES[item.consonant]?.[vIdx] || syllable;
+                speakIndonesianNatural(`${syllable}, seperti ${sampleWord}.`);
+            } else {
+                speakText(`${item.enTTS[vIdx]}.`, 'en');
+            }
         }
 
         function playAllCurrentSyllables() {
@@ -1943,15 +2196,21 @@
                 }, idx * 550);
             });
 
-            const exampleWords = INDONESIAN_SYLLABLE_EXAMPLES[item.consonant];
-            speakIndonesianNatural(`Contoh kata untuk huruf ${item.consonant}: ${exampleWords.join(', ')}.`);
+            if (currentLang === 'id') {
+                speakIndonesianNatural(`${item.nativeTTS.join(', ')}. Contoh kata: ${item.sampleNative}.`);
+            } else {
+                speakText(`${item.enTTS.join(', ')}. As in ${item.enSampleSpeech}.`, 'en');
+            }
         }
 
         function speakSyllableExampleWord() {
             const item = SYLLABLE_MATRIX_DATA[currentConsonantIndex];
             playSoundEffect('pop');
-            const exampleWord = item.sampleWord.split('→').pop().trim().toLowerCase();
-            speakIndonesianNatural(`Contoh kata: ${exampleWord}.`);
+            if (currentLang === 'id') {
+                speakIndonesianNatural(`Contoh kata: ${item.sampleNative}.`);
+            } else {
+                speakText(`Example word: ${item.enSampleSpeech}.`, 'en');
+            }
         }
 
         /********************************************************************
@@ -2045,7 +2304,7 @@
                     `Hebat sekali! Kamu berhasil menulis huruf ${item.id.nameNativeTTS}. Contoh kata: ${item.id.word}.`
                 );
             } else {
-                speakText(`Awesome job! You traced the letter ${item.en.nameSpeech}, for ${item.en.word}!`, 'en');
+                speakText(`Awesome job! You traced the letter ${item.letter}, for ${item.en.word}!`, 'en');
             }
         }
 
@@ -2198,7 +2457,10 @@
             }
 
             if (currentLang === 'id') {
-                speakIndonesianNatural(`Kata ${currentItem.word.toLowerCase()}.`);
+                speakIndonesianNatural(
+                    currentItem.nativeSounds[unitIdx],
+                    currentItem.fallbackSounds[unitIdx]
+                );
             } else {
                 speakText(currentItem.nativeSounds[unitIdx], 'en');
             }
@@ -2228,7 +2490,7 @@
             }, totalDelay);
 
             if (currentLang === 'id') {
-                speakIndonesianNatural(`Kata ${currentItem.word.toLowerCase()}.`);
+                speakIndonesianNatural(currentItem.fullNative, currentItem.fullFallback);
             } else {
                 speakText(currentItem.fullNative, 'en');
             }
@@ -2302,7 +2564,7 @@
                     `Manakah huruf ${target.id.nameNativeTTS}, seperti pada kata ${target.id.word}?`
                 );
             } else {
-                speakText(`Find the letter ${target.en.nameSpeech}, that makes the sound ${target.en.phonicsSpeech}, as in ${target.en.word}!`, 'en');
+                speakText(`Find the letter ${target.letter}, that makes the sound ${target.en.phonicsSpeech}!`, 'en');
             }
         }
 
