@@ -2369,7 +2369,12 @@
             while (optionsIndices.size < 3) {
                 optionsIndices.add(Math.floor(Math.random() * ALPHABET_DATA.length));
             }
-            const shuffledOptions = Array.from(optionsIndices).sort(() => Math.random() - 0.5);
+            // Fisher-Yates: every position is equally likely for the answer.
+            const shuffledOptions = Array.from(optionsIndices);
+            for (let i = shuffledOptions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+            }
 
             const grid = document.getElementById('quizOptionsGrid');
             grid.innerHTML = '';
