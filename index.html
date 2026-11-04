@@ -1532,7 +1532,9 @@
             try {
                 const playPromise = cloudAudioPlayer.play();
                 if (playPromise) {
-                    playPromise.catch(() => {
+                    playPromise.catch((err) => {
+                        // A newer sound interrupted this one; that is not a connection problem.
+                        if (err && err.name === 'AbortError') return;
                         setSpeechStatus('Suara cloud tidak dapat diputar. Periksa koneksi internet lalu coba lagi.', true);
                     });
                 }
