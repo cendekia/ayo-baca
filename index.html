@@ -1399,12 +1399,28 @@
         /********************************************************************
          * 3. STATE APLIKASI & KONFIGURASI SUARA NATURAL INDONESIA
          ********************************************************************/
+        // localStorage throws when site data is blocked; the app must still start.
+        function readStored(key, fallback) {
+            try {
+                const value = localStorage.getItem(key);
+                return value === null ? fallback : value;
+            } catch (e) {
+                return fallback;
+            }
+        }
+
+        function writeStored(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch (e) {}
+        }
+
         let currentLang = 'id'; // 'id' atau 'en'
         let currentMode = 'alphabet'; // 'alphabet', 'syllable', 'blend', 'trace', 'quiz'
         let currentLetterIndex = 0;
         let currentConsonantIndex = 0;
         let currentBlendIndex = 0;
-        let starsCount = parseInt(localStorage.getItem('AyoBaca_stars') || '0', 10);
+        let starsCount = parseInt(readStored('AyoBaca_stars', '0'), 10) || 0;
         let quizStreak = 0;
         let currentQuizAnswerIndex = 0;
         let quizAnswered = false; // true after a correct tap, until the next question
@@ -1412,7 +1428,7 @@
         let autoReadInterval = null;
 
         // Pengaturan Mesin Suara
-        let userSpeechRate = parseFloat(localStorage.getItem('AyoBaca_rate') || '0.85');
+        let userSpeechRate = parseFloat(readStored('AyoBaca_rate', '0.85')) || 0.85;
         let cloudAudioPlayer = new Audio();
 
         // State Kanvas Jejak Huruf
@@ -1498,7 +1514,7 @@
 
         function updateSpeechRate(val) {
             userSpeechRate = parseFloat(val);
-            localStorage.setItem('AyoBaca_rate', val);
+            writeStored('AyoBaca_rate', val);
             document.getElementById('speechRateLabel').textContent = `${userSpeechRate.toFixed(2)}x`;
         }
 
@@ -1572,7 +1588,7 @@
 
         function addStars(amount = 1) {
             starsCount += amount;
-            localStorage.setItem('AyoBaca_stars', starsCount.toString());
+            writeStored('AyoBaca_stars', starsCount.toString());
             const starEl = document.getElementById('starCountDisplay');
             starEl.textContent = starsCount;
             starEl.classList.remove('animate-pop');
