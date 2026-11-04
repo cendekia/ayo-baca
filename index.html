@@ -1,0 +1,2350 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AyoBaca - Belajar Alfabet & Membaca Anak (ID & EN)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka (ramah anak, bulat & jelas untuk disleksia/pra-membaca) & Nunito -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti untuk perayaan bintang anak -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --font-kid: 'Fredoka', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+        }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(180deg, #E0F2FE 0%, #FEF9C3 55%, #DCFCE7 100%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+        .font-kid {
+            font-family: var(--font-kid);
+        }
+        /* Tombol 3D Taktil Ramah Jari Anak < 6 Tahun */
+        .btn-3d {
+            transition: all 0.14s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+        .card-3d {
+            box-shadow: 0 10px 0 rgba(0, 0, 0, 0.08), 0 14px 28px rgba(0, 0, 0, 0.08);
+        }
+        /* Animasi karakter & elemen mengambang */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+        .animate-float {
+            animation: floatSlow 3.2s ease-in-out infinite;
+        }
+        @keyframes popScale {
+            0% { transform: scale(0.85); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .animate-pop {
+            animation: popScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        /* Highlight saat suku kata atau fonem sedang berbunyi */
+        .phoneme-active {
+            transform: scale(1.12) translateY(-4px);
+            box-shadow: 0 0 0 5px #FACC15, 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+        }
+        /* Custom scrollbar untuk pita huruf A-Z */
+        .no-scrollbar::-webkit-scrollbar {
+            height: 6px;
+        }
+        .no-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 9999px;
+        }
+        .no-scrollbar::-webkit-scrollbar-thumb {
+            background: #93C5FD;
+            border-radius: 9999px;
+        }
+        /* Kanvas Jejak Huruf (Tracing) */
+        #traceCanvas {
+            touch-action: none;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col justify-between">
+
+    <!-- ================= HEADER & NAVIGASI ATAS ================= -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b-4 border-sky-200 px-3 py-2.5 sm:px-6">
+        <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <!-- Logo & Judul -->
+            <div class="flex items-center gap-2.5">
+                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md border-2 border-white">
+                    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f31f.svg" alt="Star" class="w-7 h-7 animate-float">
+                </div>
+                <div>
+                    <h1 class="font-kid font-bold text-xl sm:text-2xl tracking-wide text-sky-700 leading-none">
+                        Ayo<span class="text-orange-500">Baca</span>
+                    </h1>
+                    <p id="headerSubtitle" class="text-xs sm:text-sm font-bold text-slate-500">
+                        Metode Fonik & Suku Kata Ilmiah
+                    </p>
+                </div>
+            </div>
+
+            <!-- Kontrol Kanan: Bintang, Bahasa, Pengaturan Suara, Info Ilmiah -->
+            <div class="flex items-center gap-2 sm:gap-2.5">
+                <!-- Penghitung Bintang Anak -->
+                <div class="flex items-center gap-1.5 bg-amber-100 border-2 border-amber-300 px-3 py-1.5 rounded-2xl shadow-sm" title="Bintang Prestasi">
+                    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2b50.svg" alt="Star" class="w-5 h-5">
+                    <span id="starCountDisplay" class="font-kid font-bold text-amber-700 text-base sm:text-lg">0</span>
+                </div>
+
+                <!-- Saklar Bahasa (ID / EN) -->
+                <div class="bg-slate-100 p-1 rounded-2xl border-2 border-slate-200 flex items-center">
+                    <button id="btnLangID" onclick="setLanguage('id')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-kid font-bold text-sm transition-all bg-sky-500 text-white shadow-sm">
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1ee-1f1e9.svg" alt="ID" class="w-5 h-5">
+                        <span>ID</span>
+                    </button>
+                    <button id="btnLangEN" onclick="setLanguage('en')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-kid font-bold text-sm transition-all text-slate-600 hover:bg-slate-200">
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1ec-1f1e7.svg" alt="EN" class="w-5 h-5">
+                        <span>EN</span>
+                    </button>
+                </div>
+
+                <!-- Tombol Pengaturan Suara Natural Indonesia -->
+                <button onclick="toggleVoiceModal(true)" class="btn-3d bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-2xl font-kid font-semibold text-xs sm:text-sm flex items-center gap-1.5 border-2 border-emerald-300" title="Pengaturan Suara & Logat Indonesia">
+                    <span>🎙️</span>
+                    <span id="btnVoiceSettingsText" class="hidden sm:inline">Suara ID</span>
+                </button>
+
+                <!-- Tombol Panduan Orang Tua & Hosting -->
+                <button onclick="toggleScienceModal(true)" class="btn-3d bg-violet-500 hover:bg-violet-600 text-white px-3 py-2 rounded-2xl font-kid font-semibold text-xs sm:text-sm flex items-center gap-1.5 border-2 border-violet-300">
+                    <span>🔬</span>
+                    <span id="btnParentText" class="hidden lg:inline">Acuan Ilmiah</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= TAB MODE BELAJAR (5 PILAR ILMIAH) ================= -->
+    <nav class="max-w-5xl w-full mx-auto px-3 pt-4 pb-2">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+            <button onclick="switchMode('alphabet')" id="tab-alphabet" class="btn-3d flex items-center justify-center gap-1.5 py-3 px-2.5 rounded-2xl font-kid font-bold text-xs sm:text-sm border-4 border-white bg-sky-500 text-white">
+                <span class="text-lg sm:text-xl">🔤</span>
+                <span id="tabTextAlphabet">1. Alfabet</span>
+            </button>
+            <button onclick="switchMode('syllable')" id="tab-syllable" class="btn-3d flex items-center justify-center gap-1.5 py-3 px-2.5 rounded-2xl font-kid font-bold text-xs sm:text-sm border-4 border-white bg-white text-slate-700 hover:bg-violet-50">
+                <span class="text-lg sm:text-xl">🗣️</span>
+                <span id="tabTextSyllable">2. Ba-Bi-Bu</span>
+            </button>
+            <button onclick="switchMode('blend')" id="tab-blend" class="btn-3d flex items-center justify-center gap-1.5 py-3 px-2.5 rounded-2xl font-kid font-bold text-xs sm:text-sm border-4 border-white bg-white text-slate-700 hover:bg-emerald-50">
+                <span class="text-lg sm:text-xl">🧩</span>
+                <span id="tabTextBlend">3. Baca Kata</span>
+            </button>
+            <button onclick="switchMode('trace')" id="tab-trace" class="btn-3d flex items-center justify-center gap-1.5 py-3 px-2.5 rounded-2xl font-kid font-bold text-xs sm:text-sm border-4 border-white bg-white text-slate-700 hover:bg-amber-50">
+                <span class="text-lg sm:text-xl">✍️</span>
+                <span id="tabTextTrace">4. Tulis Huruf</span>
+            </button>
+            <button onclick="switchMode('quiz')" id="tab-quiz" class="col-span-2 sm:col-span-1 btn-3d flex items-center justify-center gap-1.5 py-3 px-2.5 rounded-2xl font-kid font-bold text-xs sm:text-sm border-4 border-white bg-white text-slate-700 hover:bg-rose-50">
+                <span class="text-lg sm:text-xl">🎯</span>
+                <span id="tabTextQuiz">5. Tebak Bunyi</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ================= KONTEN UTAMA ================= -->
+    <main class="max-w-5xl w-full mx-auto px-3 py-3 flex-grow">
+
+        <!-- PITA STATUS SUARA INDONESIA NATURAL -->
+        <div id="voiceStatusBanner" class="mb-3 bg-emerald-50/90 border-2 border-emerald-200 rounded-2xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="activeVoiceStatusText" class="font-bold text-emerald-900">
+                    Mesin Fonetik Bahasa Indonesia Murni Aktif (Tanpa Logat Inggris)
+                </span>
+            </div>
+            <button onclick="toggleVoiceModal(true)" class="font-kid font-bold text-emerald-700 hover:text-emerald-900 underline">
+                Ubah / Tes Suara 🔊
+            </button>
+        </div>
+
+        <!-- PITA PEMILIH HURUF A-Z (Tampil di Mode 1 & Mode 4) -->
+        <div id="letterRibbonContainer" class="mb-4 bg-white/85 backdrop-blur rounded-3xl p-3 border-4 border-sky-200 shadow-sm">
+            <div class="flex items-center justify-between mb-1.5 px-1">
+                <span id="ribbonLabel" class="text-xs sm:text-sm font-extrabold text-sky-700 uppercase tracking-wider">
+                    Pilih Huruf A sampai Z:
+                </span>
+                <button onclick="playAlphabetSongHint()" class="text-xs sm:text-sm font-kid font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1">
+                    <span>🎵</span> <span id="btnAutoReadText">Baca Otomatis A-Z</span>
+                </button>
+            </div>
+            <div id="letterRibbon" class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1.5 pt-0.5">
+                <!-- Diisi secara dinamis oleh JavaScript -->
+            </div>
+        </div>
+
+        <!-- ================= MODE 1: EKSPLORASI ALFABET & FONIK (PHONEMIC AWARENESS) ================= -->
+        <section id="mode-alphabet" class="space-y-4">
+            <div class="bg-white rounded-[2rem] border-4 border-sky-300 card-3d p-4 sm:p-7 relative overflow-hidden">
+                <!-- Lencana Penjelasan Metode Ilmiah -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <span id="scientificBadge1" class="inline-flex items-center gap-1.5 bg-sky-100 text-sky-800 text-xs sm:text-sm font-extrabold px-3.5 py-1.5 rounded-full border border-sky-300">
+                        🧠 Metode Fonik & Suku Kata Indonesia Murni (Ehri, 1984)
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="prevLetter()" class="btn-3d bg-slate-100 hover:bg-slate-200 text-slate-700 w-10 h-10 rounded-xl font-bold flex items-center justify-center border-2 border-slate-300" aria-label="Huruf Sebelumnya">◀</button>
+                        <button onclick="nextLetter()" class="btn-3d bg-slate-100 hover:bg-slate-200 text-slate-700 w-10 h-10 rounded-xl font-bold flex items-center justify-center border-2 border-slate-300" aria-label="Huruf Selanjutnya">▶</button>
+                    </div>
+                </div>
+
+                <!-- Grid Kartu Utama: Kiri Huruf Kapital/Kecil, Kanan Gambar Asosiasi & Kata -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+
+                    <!-- Kolom Kiri: Huruf Besar & Kecil Interaktif -->
+                    <div class="md:col-span-5 flex flex-col items-center justify-center bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 text-white rounded-3xl p-6 border-4 border-sky-200 shadow-inner relative cursor-pointer group" onclick="speakLetterAndPhonicsCombo()">
+                        <span class="absolute top-3 right-4 bg-white/25 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm">
+                            👆 Ketuk Huruf
+                        </span>
+
+                        <div id="bigLetterCard" class="font-kid font-bold text-7xl sm:text-8xl tracking-tight my-3 drop-shadow-md flex items-baseline gap-3">
+                            <span id="displayUpper">A</span>
+                            <span id="displayLower" class="text-6xl sm:text-7xl text-amber-200">a</span>
+                        </div>
+
+                        <!-- Chip Bunyi Fonetik -->
+                        <div class="mt-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-2xl border border-white/40 text-center">
+                            <p id="phoneticChip" class="font-kid font-bold text-base sm:text-lg text-amber-100">
+                                Lafal Huruf: "A" • Bunyi: /a/
+                            </p>
+                        </div>
+
+                        <!-- Indikator Vokal / Konsonan -->
+                        <span id="vowelBadge" class="mt-2 text-xs font-extrabold uppercase tracking-wider px-3 py-0.5 rounded-full bg-amber-300 text-amber-950">
+                            Huruf Vokal
+                        </span>
+                    </div>
+
+                    <!-- Kolom Kanan: Ilustrasi Bebas Hak Cipta (Twemoji SVG) & Contoh Kata -->
+                    <div class="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
+
+                        <div onclick="speakExampleWord()" class="w-full bg-gradient-to-r from-amber-50 to-orange-50 border-4 border-amber-200 rounded-3xl p-5 flex flex-col sm:flex-row items-center gap-5 cursor-pointer hover:border-amber-400 transition-all">
+                            <!-- Gambar Vector SVG -->
+                            <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-white border-4 border-amber-200 flex items-center justify-center p-4 shadow-sm flex-shrink-0">
+                                <img id="letterImage" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34e.svg" alt="Ilustrasi Kata" class="w-20 h-20 sm:w-24 sm:h-24 animate-float" onerror="this.src='https://placehold.co/160x160/FEF3C7/D97706?text=ABC'">
+                            </div>
+
+                            <!-- Teks Kata & Pemenggalan Suku Kata -->
+                            <div class="space-y-1.5">
+                                <span id="wordAssociationLabel" class="text-xs font-extrabold uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-full">
+                                    KATA KUNCI VISUAL (KETUK GAMBAR):
+                                </span>
+                                <h2 id="wordTitleDisplay" class="font-kid font-bold text-3xl sm:text-4xl text-slate-800 pt-1">
+                                    <span class="text-rose-500 underline decoration-4">A</span>pel
+                                </h2>
+                                <p id="wordSyllableBreakdown" class="font-kid font-semibold text-lg text-sky-700 bg-sky-100 inline-block px-3 py-0.5 rounded-xl">
+                                    Suku Kata: A - pel
+                                </p>
+                                <p id="wordSentenceDisplay" class="text-sm sm:text-base font-bold text-slate-600 pt-1">
+                                    "Apel merah itu manis."
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 3 Tombol Audio Berlapis (Nama Huruf vs Bunyi Fonem vs Ejaan Kata) -->
+                        <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                            <button onclick="speakLetterName()" class="btn-3d bg-sky-500 hover:bg-sky-600 text-white py-3.5 px-4 rounded-2xl font-kid font-bold text-base flex items-center justify-center gap-2 border-2 border-sky-300">
+                                <span class="text-xl">🔊</span>
+                                <div class="text-left leading-tight">
+                                    <div id="btnLabelName" class="text-xs opacity-90">Langkah 1</div>
+                                    <div id="btnTitleName">Nama Huruf</div>
+                                </div>
+                            </button>
+
+                            <button onclick="speakPhonicsSound()" class="btn-3d bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 px-4 rounded-2xl font-kid font-bold text-base flex items-center justify-center gap-2 border-2 border-emerald-300">
+                                <span class="text-xl">🗣️</span>
+                                <div class="text-left leading-tight">
+                                    <div id="btnLabelSound" class="text-xs opacity-90">Langkah 2</div>
+                                    <div id="btnTitleSound">Bunyi & Suku Kata</div>
+                                </div>
+                            </button>
+
+                            <button onclick="speakExampleWord()" class="btn-3d bg-orange-500 hover:bg-orange-600 text-white py-3.5 px-4 rounded-2xl font-kid font-bold text-base flex items-center justify-center gap-2 border-2 border-orange-300">
+                                <span class="text-xl">📖</span>
+                                <div class="text-left leading-tight">
+                                    <div id="btnLabelWord" class="text-xs opacity-90">Langkah 3</div>
+                                    <div id="btnTitleWord">Eja & Baca</div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Panel Khusus 2 Bunyi Huruf E Bahasa Indonesia (E Taling vs E Pepet) -->
+                        <div id="specialEVariantsPanel" class="hidden w-full bg-amber-100/90 border-2 border-amber-300 rounded-2xl p-3.5 text-left space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-kid font-bold text-xs sm:text-sm text-amber-950">
+                                    💡 Info Ilmiah KBBI: Huruf E punya 2 bunyi di Bahasa Indonesia!
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <button onclick="speakEVariant('taling')" class="btn-3d bg-white hover:bg-amber-50 text-slate-800 p-2.5 rounded-xl border-2 border-amber-300 flex items-center gap-2.5 text-left">
+                                    <span class="text-2xl">🦎</span>
+                                    <div class="leading-tight">
+                                        <div class="font-kid font-bold text-sm text-sky-700">1. Bunyi É Terbuka (/e/)</div>
+                                        <div class="text-xs font-bold text-slate-600">Contoh: <strong>É-kor</strong>, <strong>Bé-bék</strong>, <strong>Mé-ja</strong></div>
+                                    </div>
+                                </button>
+                                <button onclick="speakEVariant('pepet')" class="btn-3d bg-white hover:bg-amber-50 text-slate-800 p-2.5 rounded-xl border-2 border-amber-300 flex items-center gap-2.5 text-left">
+                                    <span class="text-2xl">🦅</span>
+                                    <div class="leading-tight">
+                                        <div class="font-kid font-bold text-sm text-emerald-700">2. Bunyi E Pepet (/ə/)</div>
+                                        <div class="text-xs font-bold text-slate-600">Contoh: <strong>E-lang</strong>, <strong>E-nam</strong>, <strong>E-mas</strong></div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODE 2: MATRIKS SUKU KATA TERBUKA (BA-BI-BU-BE-BO) ================= -->
+        <section id="mode-syllable" class="hidden space-y-4">
+            <div class="bg-white rounded-[2rem] border-4 border-violet-300 card-3d p-4 sm:p-7">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <div>
+                        <span id="scientificBadgeSyllable" class="inline-flex items-center gap-1.5 bg-violet-100 text-violet-900 text-xs sm:text-sm font-extrabold px-3.5 py-1.5 rounded-full border border-violet-300">
+                            🗣️ Metode Kupas Rangkai Suku Kata (KV: A - I - U - E - O)
+                        </span>
+                        <h2 id="syllableHeaderTitle" class="font-kid font-bold text-xl sm:text-2xl text-slate-800 mt-2">
+                            Pilih Huruf Konsonan Lalu Ketuk Suku Katanya!
+                        </h2>
+                    </div>
+                    <button onclick="playAllCurrentSyllables()" class="btn-3d bg-violet-500 hover:bg-violet-600 text-white px-5 py-2.5 rounded-2xl font-kid font-bold text-sm sm:text-base flex items-center gap-2 border-2 border-violet-300">
+                        <span>🎵</span>
+                        <span id="btnSingSyllables">Ucapkan Semua (A-I-U-E-O)</span>
+                    </button>
+                </div>
+
+                <!-- Pita Pemilih Konsonan -->
+                <div id="consonantSelectorGrid" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-2 px-2 mb-5 bg-violet-50 rounded-2xl border-2 border-violet-200">
+                    <!-- Diisi oleh JS (B, C, D, G, H, J, K, L, M, N, P, R, S, T) -->
+                </div>
+
+                <!-- 5 Kartu Besar Suku Kata Terbuka (BA, BI, BU, BE, BO) -->
+                <div id="syllableCardsContainer" class="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 my-4">
+                    <!-- Diisi oleh JS -->
+                </div>
+
+                <!-- Contoh Kata dari Suku Kata Terpilih -->
+                <div class="mt-5 bg-gradient-to-r from-amber-50 via-white to-violet-50 rounded-3xl p-4 sm:p-5 border-4 border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 rounded-2xl bg-white border-2 border-amber-200 flex items-center justify-center p-2 shadow-sm">
+                            <img id="syllableExampleImg" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/26bd.svg" alt="Contoh" class="w-14 h-14 animate-float">
+                        </div>
+                        <div>
+                            <p id="syllableExampleLabel" class="text-xs font-extrabold uppercase text-violet-600">CONTOH KATA SUKU KATA INI:</p>
+                            <h3 id="syllableExampleWord" class="font-kid font-bold text-2xl sm:text-3xl text-slate-800">BO - LA → BOLA</h3>
+                            <p id="syllableExamplePhonetic" class="text-xs sm:text-sm font-bold text-slate-500">Pelafalan Murni Indonesia</p>
+                        </div>
+                    </div>
+                    <button onclick="speakSyllableExampleWord()" class="btn-3d bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-2xl font-kid font-bold text-sm sm:text-base flex items-center gap-2">
+                        <span>🔊</span> <span id="btnReadSyllableWord">Dengar Kata</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODE 3: SUSUN & BACA KATA (ELKONIN SOUND BOXES & SYLLABLE BLENDING) ================= -->
+        <section id="mode-blend" class="hidden space-y-4">
+            <div class="bg-white rounded-[2rem] border-4 border-emerald-300 card-3d p-4 sm:p-7">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <div>
+                        <span id="scientificBadge3" class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-900 text-xs sm:text-sm font-extrabold px-3.5 py-1.5 rounded-full border border-emerald-300">
+                            🧩 Metode Suku Kata Terbuka (KV-KV) Bahasa Indonesia
+                        </span>
+                        <h2 id="blendHeaderTitle" class="font-kid font-bold text-xl sm:text-2xl text-slate-800 mt-2">
+                            Sentuh Kotak Suku Kata Lalu Gabungkan Menjadi Kata!
+                        </h2>
+                    </div>
+
+                    <!-- Navigasi Kata -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="prevBlendWord()" class="btn-3d bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl font-kid font-bold text-slate-700 border-2 border-slate-300">◀</button>
+                        <span id="blendCounter" class="font-kid font-bold text-sm sm:text-base text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">1 / 12</span>
+                        <button onclick="nextBlendWord()" class="btn-3d bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl font-kid font-bold text-slate-700 border-2 border-slate-300">▶</button>
+                    </div>
+                </div>
+
+                <!-- Pilihan Kata Cepat -->
+                <div id="blendWordListPills" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 mb-4">
+                    <!-- Diisi oleh JS -->
+                </div>
+
+                <!-- Area Utama Elkonin Boxes & Gambar -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center bg-gradient-to-br from-emerald-50 via-teal-50 to-sky-50 p-5 sm:p-6 rounded-3xl border-4 border-emerald-200">
+
+                    <!-- Ilustrasi Kata -->
+                    <div class="md:col-span-4 flex flex-col items-center">
+                        <div onclick="playFullBlendSequence()" class="w-36 h-36 sm:w-44 sm:h-44 bg-white rounded-3xl border-4 border-emerald-300 shadow-md flex items-center justify-center p-5 cursor-pointer group">
+                            <img id="blendWordImage" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f455.svg" alt="Gambar Kata" class="w-28 h-28 sm:w-32 sm:h-32 animate-float" onerror="this.src='https://placehold.co/160x160/D1FAE5/047857?text=KATA'">
+                        </div>
+                        <p id="blendImageHint" class="text-xs font-extrabold text-emerald-700 mt-2 uppercase tracking-wider">
+                            👆 Ketuk Gambar untuk Mendengar
+                        </p>
+                    </div>
+
+                    <!-- Kotak Bunyi / Suku Kata (Elkonin Sound Boxes) -->
+                    <div class="md:col-span-8 flex flex-col items-center md:items-start space-y-5">
+                        <p id="blendTapInstruction" class="text-sm sm:text-base font-bold text-slate-600">
+                            👇 Ketuk Setiap Kotak Suku Kata untuk Mendengar Bunyinya:
+                        </p>
+
+                        <!-- Barisan Kotak Elkonin -->
+                        <div id="elkoninBoxesContainer" class="flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4 w-full">
+                            <!-- Diisi oleh JS -->
+                        </div>
+
+                        <!-- Panah Penggabungan & Kata Utuh -->
+                        <div class="w-full flex flex-col sm:flex-row items-center gap-4 pt-2">
+                            <button onclick="playFullBlendSequence()" class="w-full sm:w-auto btn-3d bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-4 px-7 rounded-2xl font-kid font-bold text-lg sm:text-xl flex items-center justify-center gap-3 border-2 border-emerald-300">
+                                <span>🚀</span>
+                                <span id="btnBlendActionText">Gabungkan & Baca Kata!</span>
+                            </button>
+
+                            <div id="blendedFullWordCard" onclick="playFullBlendSequence()" class="cursor-pointer bg-white px-6 py-3 rounded-2xl border-4 border-amber-300 shadow-sm text-center">
+                                <span id="blendedFullWordText" class="font-kid font-bold text-2xl sm:text-3xl text-slate-800 tracking-wide">BAJU</span>
+                                <span id="blendedMeaningSubtext" class="block text-xs font-bold text-slate-500">Pakaian (Shirt)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODE 4: JEJAK HURUF MULTISENSORI (VAKT) ================= -->
+        <section id="mode-trace" class="hidden space-y-4">
+            <div class="bg-white rounded-[2rem] border-4 border-amber-300 card-3d p-4 sm:p-7">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <div>
+                        <span id="scientificBadge2" class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 text-xs sm:text-sm font-extrabold px-3.5 py-1.5 rounded-full border border-amber-300">
+                            ✍️ Metode Multisensori VAKT (Visual-Auditori-Kinestetik-Taktil)
+                        </span>
+                        <h2 id="traceHeaderTitle" class="font-kid font-bold text-xl sm:text-2xl text-slate-800 mt-2">
+                            Tebalkan Huruf dengan Jarimu!
+                        </h2>
+                    </div>
+
+                    <!-- Pilihan Warna Krayon Anak -->
+                    <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border-2 border-slate-200">
+                        <button onclick="setBrushColor('#EF4444')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white shadow ring-2 ring-red-300" aria-label="Merah"></button>
+                        <button onclick="setBrushColor('#3B82F6')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white shadow" aria-label="Biru"></button>
+                        <button onclick="setBrushColor('#10B981')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow" aria-label="Hijau"></button>
+                        <button onclick="setBrushColor('#8B5CF6')" class="w-8 h-8 rounded-full bg-violet-500 border-2 border-white shadow" aria-label="Ungu"></button>
+                        <button onclick="setBrushColor('#F97316')" class="w-8 h-8 rounded-full bg-orange-500 border-2 border-white shadow" aria-label="Oranye"></button>
+                    </div>
+                </div>
+
+                <!-- Area Kanvas & Kontrol Jejak -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                    <div class="md:col-span-8 flex flex-col items-center">
+                        <div class="w-full max-w-md bg-amber-50/70 rounded-3xl border-4 border-dashed border-amber-400 p-2 relative shadow-inner">
+                            <canvas id="traceCanvas" class="w-full h-64 sm:h-72 rounded-2xl bg-white"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-4 flex flex-col space-y-3">
+                        <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-1">
+                                <span id="traceProgressLabel" class="font-kid font-bold text-sm text-sky-900">Progres Menulis:</span>
+                                <span id="tracePercentText" class="font-kid font-bold text-sm text-sky-700">0%</span>
+                            </div>
+                            <div class="w-full bg-sky-200 h-3.5 rounded-full overflow-hidden">
+                                <div id="traceProgressBar" class="bg-emerald-500 h-full transition-all duration-200" style="width: 0%"></div>
+                            </div>
+                            <p id="traceInstructionText" class="text-xs font-bold text-slate-600 mt-2">
+                                Ikuti garis titik-titik sambil mengucapkan bunyi hurufnya keras-keras ya!
+                            </p>
+                        </div>
+
+                        <button onclick="speakLetterAndPhonicsCombo()" class="btn-3d bg-sky-500 hover:bg-sky-600 text-white py-3 px-4 rounded-2xl font-kid font-bold flex items-center justify-center gap-2">
+                            <span>🔊</span> <span id="btnTraceSound">Dengar Bunyi Huruf</span>
+                        </button>
+
+                        <button onclick="clearTraceCanvas()" class="btn-3d bg-rose-500 hover:bg-rose-600 text-white py-3 px-4 rounded-2xl font-kid font-bold flex items-center justify-center gap-2">
+                            <span>🧽</span> <span id="btnTraceClear">Ulangi Tulisan</span>
+                        </button>
+
+                        <button onclick="celebrateTracing()" class="btn-3d bg-amber-500 hover:bg-amber-600 text-white py-3 px-4 rounded-2xl font-kid font-bold flex items-center justify-center gap-2">
+                            <span>⭐</span> <span id="btnTraceDone">Selesai & Ambil Bintang!</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODE 5: KUIS TEBAK BUNYI (ACTIVE RECALL & GAMIFIED REINFORCEMENT) ================= -->
+        <section id="mode-quiz" class="hidden space-y-4">
+            <div class="bg-white rounded-[2rem] border-4 border-rose-300 card-3d p-4 sm:p-7 text-center">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <span id="scientificBadge4" class="inline-flex items-center gap-1.5 bg-rose-100 text-rose-900 text-xs sm:text-sm font-extrabold px-3.5 py-1.5 rounded-full border border-rose-300">
+                        🎯 Active Recall & Retrieval Practice (Tanpa Hukuman)
+                    </span>
+                    <span id="quizStreakBadge" class="font-kid font-bold text-sm sm:text-base bg-amber-100 text-amber-800 px-3.5 py-1 rounded-full border border-amber-300">
+                        🔥 Skor Benar: 0
+                    </span>
+                </div>
+
+                <!-- Tombol Speaker Pertanyaan Besar -->
+                <div class="my-4 flex flex-col items-center">
+                    <h2 id="quizPromptText" class="font-kid font-bold text-xl sm:text-2xl text-slate-800 mb-3">
+                        Dengarkan baik-baik! Mana huruf untuk bunyi dan kata ini?
+                    </h2>
+
+                    <button onclick="playQuizPromptAudio()" class="btn-3d bg-gradient-to-b from-rose-400 to-rose-600 hover:from-rose-500 hover:to-rose-700 text-white px-8 py-4 rounded-3xl font-kid font-bold text-lg sm:text-xl flex items-center gap-3 border-4 border-rose-200">
+                        <span class="text-3xl animate-bounce">🔊</span>
+                        <span id="btnQuizReplayText">Putar Suara Pertanyaan</span>
+                    </button>
+
+                    <p id="quizFeedbackMessage" class="mt-4 font-kid font-bold text-lg min-h-[1.75rem] text-sky-700">
+                        <!-- Pesan umpan balik ramah anak -->
+                    </p>
+                </div>
+
+                <!-- 3 Pilihan Kartu Jawaban -->
+                <div id="quizOptionsGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mt-2">
+                    <!-- Diisi oleh JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= FOOTER RINGKAS ================= -->
+    <footer class="max-w-5xl w-full mx-auto px-4 py-4 text-center text-xs sm:text-sm font-bold text-slate-500">
+        <p>
+            🌟 <strong>AyoBaca</strong> — Aplikasi Edukasi Pra-Membaca Anak Usia &lt; 6 Tahun (Bahasa Indonesia &amp; Inggris).
+        </p>
+    </footer>
+
+    <!-- ================= MODAL PENGATURAN SUARA NATURAL INDONESIA ================= -->
+    <div id="voiceModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] border-4 border-emerald-300 max-w-2xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-7 shadow-2xl">
+            <div class="flex items-center justify-between border-b-2 border-slate-100 pb-4 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-3xl">🎙️</span>
+                    <div>
+                        <h3 class="font-kid font-bold text-xl sm:text-2xl text-emerald-700">
+                            Pengaturan Suara & Logat Bahasa Indonesia
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 font-bold">
+                            Memastikan pelafalan huruf & suku kata 100% murni Indonesia
+                        </p>
+                    </div>
+                </div>
+                <button onclick="toggleVoiceModal(false)" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-bold text-xl flex items-center justify-center">✕</button>
+            </div>
+
+            <div class="space-y-4 text-sm sm:text-base text-slate-700">
+                <!-- Pilihan Mesin Suara -->
+                <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-200 space-y-3">
+                    <label class="block font-kid font-bold text-emerald-950 text-base">
+                        1. Pilih Metode Suara Bahasa Indonesia:
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <button id="btnEnginePhonetic" onclick="setAudioEngineMode('phonetic')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm">
+                            <div class="text-sm sm:text-base">✨ Suara Perangkat + Ejaan Fonetik Murni (Disarankan)</div>
+                            <div class="text-xs opacity-90 font-body mt-0.5">Mengubah huruf ke ejaan vokal Indonesia (aa, bé, cé, ba, bi, bu) agar bebas logat Inggris & 100% jalan offline.</div>
+                        </button>
+                        <button id="btnEngineCloud" onclick="setAudioEngineMode('cloud')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100">
+                            <div class="text-sm sm:text-base">☁️ Cloud Natural TTS Indonesia + Fallback</div>
+                            <div class="text-xs opacity-80 font-body mt-0.5">Menggunakan streaming suara wanita natural Google Indonesia (butuh koneksi internet).</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pemilih Voice Spesifik Perangkat -->
+                <div class="bg-sky-50 p-4 rounded-2xl border-2 border-sky-200 space-y-2">
+                    <label for="voiceSelectDropdown" class="block font-kid font-bold text-sky-900">
+                        2. Suara Bahasa Indonesia yang Terdeteksi di Perangkat Ini:
+                    </label>
+                    <select id="voiceSelectDropdown" onchange="onManualVoiceSelect(this.value)" class="w-full p-3 rounded-xl border-2 border-sky-300 bg-white font-bold text-slate-700 text-sm">
+                        <!-- Diisi oleh JS -->
+                    </select>
+                    <p id="voiceDetectionHint" class="text-xs font-bold text-slate-600">
+                        Mendeteksi suara perangkat...
+                    </p>
+                </div>
+
+                <!-- Kecepatan Bicara Anak -->
+                <div class="bg-amber-50 p-4 rounded-2xl border-2 border-amber-200 space-y-2">
+                    <div class="flex justify-between font-kid font-bold text-amber-900">
+                        <span>3. Kecepatan Ejaan Anak:</span>
+                        <span id="speechRateLabel">0.85x (Ramah Anak)</span>
+                    </div>
+                    <input id="speechRateSlider" type="range" min="0.65" max="1.05" step="0.05" value="0.85" oninput="updateSpeechRate(this.value)" class="w-full accent-amber-500 cursor-pointer">
+                </div>
+
+                <!-- Tombol Tes Suara Langsung -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <button onclick="testIndonesianVoiceSample()" class="btn-3d bg-sky-500 hover:bg-sky-600 text-white px-5 py-3 rounded-2xl font-kid font-bold flex items-center gap-2">
+                        <span>🔊</span> <span>Tes Suara: "A, B, C — Ba, Bi, Bu, Be, Bo"</span>
+                    </button>
+                    <button onclick="toggleVoiceModal(false)" class="btn-3d bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl font-kid font-bold">
+                        Simpan & Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL ACUAN ILMIAH & PANDUAN HOSTING (ORANG TUA / GURU) ================= -->
+    <div id="scienceModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] border-4 border-violet-300 max-w-2xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-7 shadow-2xl">
+            <div class="flex items-center justify-between border-b-2 border-slate-100 pb-4 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-3xl">🔬</span>
+                    <h3 class="font-kid font-bold text-xl sm:text-2xl text-violet-700">
+                        Acuan Ilmiah &amp; Cara Hosting Gratis
+                    </h3>
+                </div>
+                <button onclick="toggleScienceModal(false)" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-bold text-xl flex items-center justify-center">✕</button>
+            </div>
+
+            <div class="space-y-4 text-sm sm:text-base text-slate-700 leading-relaxed">
+                <div class="bg-violet-50 p-4 rounded-2xl border-2 border-violet-200">
+                    <h4 class="font-kid font-bold text-violet-900 text-base sm:text-lg mb-1">
+                        1. Mengapa Metode Ini Terbukti Cepat untuk Anak &lt; 6 Tahun?
+                    </h4>
+                    <ul class="list-disc pl-5 space-y-1.5">
+                        <li><strong>Synthetic Phonics (National Reading Panel, 2000; Ehri, 2005):</strong> Anak belajar memetakan simbol huruf (grafem) ke bunyi terkecilnya (fonem), bukan sekadar menghafal urutan lagu ABC.</li>
+                        <li><strong>Metode Suku Kata Terbuka KV (Bahasa Indonesia):</strong> Penelitian psikolinguistik (Winskel &amp; Widjaja, 2007) membuktikan bahwa Bahasa Indonesia memiliki ortografi transparan sehingga penggabungan suku kata terbuka (<em>Ba-Bi-Bu-Be-Bo</em>, <em>Ba-ju</em>, <em>Bo-la</em>) adalah jalur tercepat anak Indonesia lancar membaca.</li>
+                        <li><strong>Multisensori VAKT (Orton-Gillingham &amp; Montessori):</strong> Saat anak melihat huruf (Visual), mendengar suaranya (Auditori), dan menebalkan lekuk huruf dengan jari (Kinestetik-Taktil), memori jangka panjang meningkat drastis.</li>
+                        <li><strong>Elkonin Sound Boxes (Elkonin, 1963):</strong> Memecah kata menjadi kotak-kotak bunyi yang disentuh satu per satu melatih <em>phonemic segmentation &amp; blending</em>.</li>
+                    </ul>
+                </div>
+
+               
+            <div class="mt-6 text-right">
+                <button onclick="toggleScienceModal(false)" class="btn-3d bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-2xl font-kid font-bold">
+                    Tutup Panduan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= LOGIKA JAVASCRIPT UTAMA ================= -->
+    <script>
+        /********************************************************************
+         * 1. KAMUS FONETIK MURNI BAHASA INDONESIA (ANTI LOGAT INGGRIS)
+         ********************************************************************/
+        const TWEMOJI_BASE = "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/";
+
+        const ALPHABET_DATA = [
+            {
+                letter: "A", isVowel: true,
+                id: {
+                    nameDisplay: "a",
+                    nameNativeTTS: "aa",
+                    nameFallbackTTS: "aah",
+                    soundDisplay: "/a/",
+                    phonicsNativeTTS: "aa. a, i, u, ey, o.",
+                    phonicsFallbackTTS: "aah. ah, ee, oo, eh, oh.",
+                    word: "Apel",
+                    wordNativeTTS: "a, pel. apel!",
+                    wordFallbackTTS: "ah, pell. ah-pell!",
+                    syllables: "A - pel",
+                    sentence: "Apel merah itu manis.",
+                    emoji: "1f34e"
+                },
+                en: { nameSpeech: "ay", soundDisplay: "/æ/", phonicsSpeech: "aah", word: "Apple", syllables: "Ap - ple", sentence: "A shiny red apple.", emoji: "1f34e" }
+            },
+            {
+                letter: "B", isVowel: false,
+                id: {
+                    nameDisplay: "be",
+                    nameNativeTTS: "bey",
+                    nameFallbackTTS: "beh",
+                    soundDisplay: "/b/",
+                    phonicsNativeTTS: "beh. ba, bi, bu, bey, bo.",
+                    phonicsFallbackTTS: "beh. bah, bee, boo, beh, boh.",
+                    word: "Bola",
+                    wordNativeTTS: "bo, la. bola!",
+                    wordFallbackTTS: "boh, lah. boh-lah!",
+                    syllables: "Bo - la",
+                    sentence: "Budi menendang bola.",
+                    emoji: "26bd"
+                },
+                en: { nameSpeech: "bee", soundDisplay: "/b/", phonicsSpeech: "buh", word: "Ball", syllables: "B - all", sentence: "Bounce the big ball.", emoji: "26bd" }
+            },
+            {
+                letter: "C", isVowel: false,
+                id: {
+                    nameDisplay: "ce",
+                    nameNativeTTS: "cey",
+                    nameFallbackTTS: "cheh",
+                    soundDisplay: "/tʃ/",
+                    phonicsNativeTTS: "ceh. ca, ci, cu, cey, co.",
+                    phonicsFallbackTTS: "cheh. chah, chee, choo, cheh, choh.",
+                    word: "Ceri",
+                    wordNativeTTS: "ce, ri. ceri!",
+                    wordFallbackTTS: "cheh, ree. cheh-ree!",
+                    syllables: "Ce - ri",
+                    sentence: "Buah ceri warna merah.",
+                    emoji: "1f352"
+                },
+                en: { nameSpeech: "see", soundDisplay: "/k/", phonicsSpeech: "kuh", word: "Cat", syllables: "C - a - t", sentence: "The cute cat says meow.", emoji: "1f431" }
+            },
+            {
+                letter: "D", isVowel: false,
+                id: {
+                    nameDisplay: "de",
+                    nameNativeTTS: "dey",
+                    nameFallbackTTS: "deh",
+                    soundDisplay: "/d/",
+                    phonicsNativeTTS: "deh. da, di, du, dey, do.",
+                    phonicsFallbackTTS: "deh. dah, dee, doo, deh, doh.",
+                    word: "Domba",
+                    wordNativeTTS: "dom, ba. domba!",
+                    wordFallbackTTS: "dohm, bah. dohm-bah!",
+                    syllables: "Dom - ba",
+                    sentence: "Bulu domba sangat lembut.",
+                    emoji: "1f411"
+                },
+                en: { nameSpeech: "dee", soundDisplay: "/d/", phonicsSpeech: "duh", word: "Dog", syllables: "D - o - g", sentence: "The happy dog barks.", emoji: "1f436" }
+            },
+            {
+                letter: "E", isVowel: true,
+                id: {
+                    nameDisplay: "e (é / ə)",
+                    nameNativeTTS: "ey",
+                    nameFallbackTTS: "eh",
+                    soundDisplay: "/e/ & /ə/",
+                    phonicsNativeTTS: "ey, seperti eykor, dan e, seperti elang.",
+                    phonicsFallbackTTS: "eh, eh-kor, dan uh, uh-lahng.",
+                    word: "Ekor & Elang",
+                    wordNativeTTS: "ey, kor. eykor! dan e, lang. elang!",
+                    wordFallbackTTS: "eh, kor. eh-kor! dan uh, lahng. uh-lahng!",
+                    syllables: "É - kor  |  E - lang",
+                    sentence: "Burung elang punya ekor yang indah.",
+                    emoji: "1f985"
+                },
+                en: { nameSpeech: "ee", soundDisplay: "/ɛ/", phonicsSpeech: "eh", word: "Egg", syllables: "E - gg", sentence: "A little white egg.", emoji: "1f95a" }
+            },
+            {
+                letter: "F", isVowel: false,
+                id: {
+                    nameDisplay: "ef",
+                    nameNativeTTS: "ef",
+                    nameFallbackTTS: "eff",
+                    soundDisplay: "/f/",
+                    phonicsNativeTTS: "feh. fa, fi, fu, fey, fo.",
+                    phonicsFallbackTTS: "feh. fah, fee, foo, feh, foh.",
+                    word: "Foto",
+                    wordNativeTTS: "fo, to. foto!",
+                    wordFallbackTTS: "foh, toh. foh-toh!",
+                    syllables: "Fo - to",
+                    sentence: "Ayo tersenyum saat foto!",
+                    emoji: "1f4f7"
+                },
+                en: { nameSpeech: "ef", soundDisplay: "/f/", phonicsSpeech: "fff", word: "Fish", syllables: "F - i - sh", sentence: "The fish swims in water.", emoji: "1f41f" }
+            },
+            {
+                letter: "G", isVowel: false,
+                id: {
+                    nameDisplay: "ge",
+                    nameNativeTTS: "gey",
+                    nameFallbackTTS: "geh",
+                    soundDisplay: "/g/",
+                    phonicsNativeTTS: "geh. ga, gi, gu, gey, go.",
+                    phonicsFallbackTTS: "geh. gah, gee, goo, geh, goh.",
+                    word: "Gajah",
+                    wordNativeTTS: "ga, jah. gajah!",
+                    wordFallbackTTS: "gah, jah. gah-jah!",
+                    syllables: "Ga - jah",
+                    sentence: "Gajah punya belalai panjang.",
+                    emoji: "1f418"
+                },
+                en: { nameSpeech: "jee", soundDisplay: "/g/", phonicsSpeech: "guh", word: "Goat", syllables: "G - oa - t", sentence: "A goat on the green hill.", emoji: "1f410" }
+            },
+            {
+                letter: "H", isVowel: false,
+                id: {
+                    nameDisplay: "ha",
+                    nameNativeTTS: "ha",
+                    nameFallbackTTS: "hah",
+                    soundDisplay: "/h/",
+                    phonicsNativeTTS: "hah. ha, hi, hu, hey, ho.",
+                    phonicsFallbackTTS: "hah. hah, hee, hoo, heh, hoh.",
+                    word: "Harimau",
+                    wordNativeTTS: "ha, ri, mau. harimau!",
+                    wordFallbackTTS: "hah, ree, mow. hah-ree-mow!",
+                    syllables: "Ha - ri - mau",
+                    sentence: "Harimau berlari cepat.",
+                    emoji: "1f42f"
+                },
+                en: { nameSpeech: "aych", soundDisplay: "/h/", phonicsSpeech: "huh", word: "Hat", syllables: "H - a - t", sentence: "Wear a sunny hat.", emoji: "1f452" }
+            },
+            {
+                letter: "I", isVowel: true,
+                id: {
+                    nameDisplay: "i",
+                    nameNativeTTS: "ii",
+                    nameFallbackTTS: "ee",
+                    soundDisplay: "/i/",
+                    phonicsNativeTTS: "ii. ikan.",
+                    phonicsFallbackTTS: "ee. ee-kahn.",
+                    word: "Ikan",
+                    wordNativeTTS: "i, kan. ikan!",
+                    wordFallbackTTS: "ee, kahn. ee-kahn!",
+                    syllables: "I - kan",
+                    sentence: "Ikan berenang di air.",
+                    emoji: "1f420"
+                },
+                en: { nameSpeech: "eye", soundDisplay: "/ɪ/", phonicsSpeech: "ih", word: "Igloo", syllables: "Ig - loo", sentence: "An igloo made of snow.", emoji: "1f9ca" }
+            },
+            {
+                letter: "J", isVowel: false,
+                id: {
+                    nameDisplay: "je",
+                    nameNativeTTS: "jey",
+                    nameFallbackTTS: "jeh",
+                    soundDisplay: "/dʒ/",
+                    phonicsNativeTTS: "jeh. ja, ji, ju, jey, jo.",
+                    phonicsFallbackTTS: "jeh. jah, jee, joo, jeh, joh.",
+                    word: "Jeruk",
+                    wordNativeTTS: "je, ruk. jeruk!",
+                    wordFallbackTTS: "jeh, rook. jeh-rook!",
+                    syllables: "Je - ruk",
+                    sentence: "Jeruk segar kaya vitamin.",
+                    emoji: "1f34a"
+                },
+                en: { nameSpeech: "jay", soundDisplay: "/dʒ/", phonicsSpeech: "juh", word: "Juice", syllables: "J - ui - ce", sentence: "Sweet orange juice.", emoji: "1f9c3" }
+            },
+            {
+                letter: "K", isVowel: false,
+                id: {
+                    nameDisplay: "ka",
+                    nameNativeTTS: "ka",
+                    nameFallbackTTS: "kah",
+                    soundDisplay: "/k/",
+                    phonicsNativeTTS: "keh. ka, ki, ku, key, ko.",
+                    phonicsFallbackTTS: "keh. kah, kee, koo, keh, koh.",
+                    word: "Kuda",
+                    wordNativeTTS: "ku, da. kuda!",
+                    wordFallbackTTS: "koo, dah. koo-dah!",
+                    syllables: "Ku - da",
+                    sentence: "Kuda berlari di padang rumput.",
+                    emoji: "1f434"
+                },
+                en: { nameSpeech: "kay", soundDisplay: "/k/", phonicsSpeech: "kuh", word: "Kite", syllables: "K - i - te", sentence: "Fly a colorful kite.", emoji: "1fa81" }
+            },
+            {
+                letter: "L", isVowel: false,
+                id: {
+                    nameDisplay: "el",
+                    nameNativeTTS: "el",
+                    nameFallbackTTS: "ell",
+                    soundDisplay: "/l/",
+                    phonicsNativeTTS: "leh. la, li, lu, ley, lo.",
+                    phonicsFallbackTTS: "leh. lah, lee, loo, leh, loh.",
+                    word: "Lampu",
+                    wordNativeTTS: "lam, pu. lampu!",
+                    wordFallbackTTS: "lahm, poo. lahm-poo!",
+                    syllables: "Lam - pu",
+                    sentence: "Lampu bersinar terang.",
+                    emoji: "1f4a1"
+                },
+                en: { nameSpeech: "el", soundDisplay: "/l/", phonicsSpeech: "lll", word: "Lion", syllables: "L - i - on", sentence: "The brave lion roars.", emoji: "1f981" }
+            },
+            {
+                letter: "M", isVowel: false,
+                id: {
+                    nameDisplay: "em",
+                    nameNativeTTS: "em",
+                    nameFallbackTTS: "emm",
+                    soundDisplay: "/m/",
+                    phonicsNativeTTS: "meh. ma, mi, mu, mey, mo.",
+                    phonicsFallbackTTS: "meh. mah, mee, moo, meh, moh.",
+                    word: "Matahari",
+                    wordNativeTTS: "ma, ta, ha, ri. matahari!",
+                    wordFallbackTTS: "mah, tah, hah, ree. mah-tah-hah-ree!",
+                    syllables: "Ma - ta - ha - ri",
+                    sentence: "Matahari bersinar pagi hari.",
+                    emoji: "1f31e"
+                },
+                en: { nameSpeech: "em", soundDisplay: "/m/", phonicsSpeech: "mmm", word: "Monkey", syllables: "Mon - key", sentence: "A funny little monkey.", emoji: "1f435" }
+            },
+            {
+                letter: "N", isVowel: false,
+                id: {
+                    nameDisplay: "en",
+                    nameNativeTTS: "en",
+                    nameFallbackTTS: "enn",
+                    soundDisplay: "/n/",
+                    phonicsNativeTTS: "neh. na, ni, nu, ney, no.",
+                    phonicsFallbackTTS: "neh. nah, nee, noo, neh, noh.",
+                    word: "Nanas",
+                    wordNativeTTS: "na, nas. nanas!",
+                    wordFallbackTTS: "nah, nahs. nah-nahs!",
+                    syllables: "Na - nas",
+                    sentence: "Buah nanas berwarna kuning.",
+                    emoji: "1f34d"
+                },
+                en: { nameSpeech: "en", soundDisplay: "/n/", phonicsSpeech: "nnn", word: "Nest", syllables: "N - e - st", sentence: "A bird nest in the tree.", emoji: "1fab9" }
+            },
+            {
+                letter: "O", isVowel: true,
+                id: {
+                    nameDisplay: "o",
+                    nameNativeTTS: "oo",
+                    nameFallbackTTS: "oh",
+                    soundDisplay: "/o/",
+                    phonicsNativeTTS: "oo. obeng.",
+                    phonicsFallbackTTS: "oh. oh-beng.",
+                    word: "Obeng",
+                    wordNativeTTS: "o, beng. obeng!",
+                    wordFallbackTTS: "oh, beng. oh-beng!",
+                    syllables: "O - beng",
+                    sentence: "Ayah memperbaiki mainan.",
+                    emoji: "1fa9b"
+                },
+                en: { nameSpeech: "oh", soundDisplay: "/ɒ/", phonicsSpeech: "aw", word: "Octopus", syllables: "Oc - to - pus", sentence: "An octopus has eight arms.", emoji: "1f419" }
+            },
+            {
+                letter: "P", isVowel: false,
+                id: {
+                    nameDisplay: "pe",
+                    nameNativeTTS: "pey",
+                    nameFallbackTTS: "peh",
+                    soundDisplay: "/p/",
+                    phonicsNativeTTS: "peh. pa, pi, pu, pey, po.",
+                    phonicsFallbackTTS: "peh. pah, pee, poo, peh, poh.",
+                    word: "Pisang",
+                    wordNativeTTS: "pi, sang. pisang!",
+                    wordFallbackTTS: "pee, sahng. pee-sahng!",
+                    syllables: "Pi - sang",
+                    sentence: "Monyet suka makan pisang.",
+                    emoji: "1f34c"
+                },
+                en: { nameSpeech: "pee", soundDisplay: "/p/", phonicsSpeech: "puh", word: "Pig", syllables: "P - i - g", sentence: "A pink little pig.", emoji: "1f437" }
+            },
+            {
+                letter: "Q", isVowel: false,
+                id: {
+                    nameDisplay: "ki",
+                    nameNativeTTS: "ki",
+                    nameFallbackTTS: "kee",
+                    soundDisplay: "/k/",
+                    phonicsNativeTTS: "kih. quran.",
+                    phonicsFallbackTTS: "kee. koor-ahn.",
+                    word: "Quran",
+                    wordNativeTTS: "qur, an. quran!",
+                    wordFallbackTTS: "koor, ahn. koor-ahn!",
+                    syllables: "Qur - an",
+                    sentence: "Belajar membaca sejak kecil.",
+                    emoji: "1f4d6"
+                },
+                en: { nameSpeech: "cue", soundDisplay: "/kw/", phonicsSpeech: "kwuh", word: "Queen", syllables: "Qu - ee - n", sentence: "The queen wears a crown.", emoji: "1f451" }
+            },
+            {
+                letter: "R", isVowel: false,
+                id: {
+                    nameDisplay: "er",
+                    nameNativeTTS: "er",
+                    nameFallbackTTS: "err",
+                    soundDisplay: "/r/",
+                    phonicsNativeTTS: "reh. ra, ri, ru, rey, ro.",
+                    phonicsFallbackTTS: "reh. rah, ree, roo, reh, roh.",
+                    word: "Roket",
+                    wordNativeTTS: "ro, ket. roket!",
+                    wordFallbackTTS: "roh, ket. roh-ket!",
+                    syllables: "Ro - ket",
+                    sentence: "Roket meluncur ke angkasa.",
+                    emoji: "1f680"
+                },
+                en: { nameSpeech: "ar", soundDisplay: "/r/", phonicsSpeech: "rrr", word: "Rabbit", syllables: "Rab - bit", sentence: "The rabbit hops fast.", emoji: "1f430" }
+            },
+            {
+                letter: "S", isVowel: false,
+                id: {
+                    nameDisplay: "es",
+                    nameNativeTTS: "es",
+                    nameFallbackTTS: "ess",
+                    soundDisplay: "/s/",
+                    phonicsNativeTTS: "seh. sa, si, su, sey, so.",
+                    phonicsFallbackTTS: "seh. sah, see, soo, seh, soh.",
+                    word: "Sapi",
+                    wordNativeTTS: "sa, pi. sapi!",
+                    wordFallbackTTS: "sah, pee. sah-pee!",
+                    syllables: "Sa - pi",
+                    sentence: "Sapi menghasilkan susu sehat.",
+                    emoji: "1f42e"
+                },
+                en: { nameSpeech: "es", soundDisplay: "/s/", phonicsSpeech: "sss", word: "Sun", syllables: "S - u - n", sentence: "The bright yellow sun.", emoji: "2600" }
+            },
+            {
+                letter: "T", isVowel: false,
+                id: {
+                    nameDisplay: "te",
+                    nameNativeTTS: "tey",
+                    nameFallbackTTS: "teh",
+                    soundDisplay: "/t/",
+                    phonicsNativeTTS: "teh. ta, ti, tu, tey, to.",
+                    phonicsFallbackTTS: "teh. tah, tee, too, teh, toh.",
+                    word: "Topi",
+                    wordNativeTTS: "to, pi. topi!",
+                    wordFallbackTTS: "toh, pee. toh-pee!",
+                    syllables: "To - pi",
+                    sentence: "Pakai topi saat panas.",
+                    emoji: "1f9e2"
+                },
+                en: { nameSpeech: "tee", soundDisplay: "/t/", phonicsSpeech: "tuh", word: "Turtle", syllables: "Tur - tle", sentence: "A slow green turtle.", emoji: "1f422" }
+            },
+            {
+                letter: "U", isVowel: true,
+                id: {
+                    nameDisplay: "u",
+                    nameNativeTTS: "uu",
+                    nameFallbackTTS: "oo",
+                    soundDisplay: "/u/",
+                    phonicsNativeTTS: "uu. ulat.",
+                    phonicsFallbackTTS: "oo. oo-laht.",
+                    word: "Ulat",
+                    wordNativeTTS: "u, lat. ulat!",
+                    wordFallbackTTS: "oo, laht. oo-laht!",
+                    syllables: "U - lat",
+                    sentence: "Ulat berubah jadi kupu-kupu.",
+                    emoji: "1f41b"
+                },
+                en: { nameSpeech: "you", soundDisplay: "/ʌ/", phonicsSpeech: "uh", word: "Umbrella", syllables: "Um - brel - la", sentence: "Use an umbrella in the rain.", emoji: "2602" }
+            },
+            {
+                letter: "V", isVowel: false,
+                id: {
+                    nameDisplay: "fe",
+                    nameNativeTTS: "fey",
+                    nameFallbackTTS: "feh",
+                    soundDisplay: "/v/",
+                    phonicsNativeTTS: "feh. fa, fi, fu, fey, fo.",
+                    phonicsFallbackTTS: "feh. fah, fee, foo, feh, foh.",
+                    word: "Biola",
+                    wordNativeTTS: "bi, o, la. biola!",
+                    wordFallbackTTS: "bee, oh, lah. bee-oh-lah!",
+                    syllables: "Bi - o - la",
+                    sentence: "Suara musik biola yang indah.",
+                    emoji: "1f3bb"
+                },
+                en: { nameSpeech: "vee", soundDisplay: "/v/", phonicsSpeech: "vvv", word: "Van", syllables: "V - a - n", sentence: "Drive the family van.", emoji: "1f690" }
+            },
+            {
+                letter: "W", isVowel: false,
+                id: {
+                    nameDisplay: "we",
+                    nameNativeTTS: "wey",
+                    nameFallbackTTS: "weh",
+                    soundDisplay: "/w/",
+                    phonicsNativeTTS: "weh. wa, wi, wu, wey, wo.",
+                    phonicsFallbackTTS: "weh. wah, wee, woo, weh, woh.",
+                    word: "Wortel",
+                    wordNativeTTS: "wor, tel. wortel!",
+                    wordFallbackTTS: "wor, tell. wor-tell!",
+                    syllables: "Wor - tel",
+                    sentence: "Wortel sehat untuk mata.",
+                    emoji: "1f955"
+                },
+                en: { nameSpeech: "double you", soundDisplay: "/w/", phonicsSpeech: "wuh", word: "Watermelon", syllables: "Wa - ter - mel - on", sentence: "Juicy sweet watermelon.", emoji: "1f349" }
+            },
+            {
+                letter: "X", isVowel: false,
+                id: {
+                    nameDisplay: "eks",
+                    nameNativeTTS: "eks",
+                    nameFallbackTTS: "eks",
+                    soundDisplay: "/ks/",
+                    phonicsNativeTTS: "eks. xilofon.",
+                    phonicsFallbackTTS: "eks. see-loh-fohn.",
+                    word: "Xilofon",
+                    wordNativeTTS: "xi, lo, fon. xilofon!",
+                    wordFallbackTTS: "see, loh, fohn. see-loh-fohn!",
+                    syllables: "Xi - lo - fon",
+                    sentence: "Alat musik pukul warna-warni.",
+                    emoji: "1f3b6"
+                },
+                en: { nameSpeech: "eks", soundDisplay: "/ks/", phonicsSpeech: "ks", word: "X-ray", syllables: "X - ray", sentence: "Doctor looks at an X-ray.", emoji: "1fa7b" }
+            },
+            {
+                letter: "Y", isVowel: false,
+                id: {
+                    nameDisplay: "ye",
+                    nameNativeTTS: "yey",
+                    nameFallbackTTS: "yeh",
+                    soundDisplay: "/j/",
+                    phonicsNativeTTS: "yeh. ya, yi, yu, yey, yo.",
+                    phonicsFallbackTTS: "yeh. yah, yee, yoo, yeh, yoh.",
+                    word: "Yoyo",
+                    wordNativeTTS: "yo, yo. yoyo!",
+                    wordFallbackTTS: "yoh, yoh. yoh-yoh!",
+                    syllables: "Yo - yo",
+                    sentence: "Bermain yoyo naik turun.",
+                    emoji: "1fa80"
+                },
+                en: { nameSpeech: "why", soundDisplay: "/j/", phonicsSpeech: "yuh", word: "Yo-yo", syllables: "Yo - yo", sentence: "Spin the green yo-yo.", emoji: "1fa80" }
+            },
+            {
+                letter: "Z", isVowel: false,
+                id: {
+                    nameDisplay: "zet",
+                    nameNativeTTS: "zet",
+                    nameFallbackTTS: "zet",
+                    soundDisplay: "/z/",
+                    phonicsNativeTTS: "zeh. za, zi, zu, zey, zo.",
+                    phonicsFallbackTTS: "zeh. zah, zee, zoo, zeh, zoh.",
+                    word: "Zebra",
+                    wordNativeTTS: "zey, bra. zebra!",
+                    wordFallbackTTS: "zeh, brah. zeh-brah!",
+                    syllables: "Ze - bra",
+                    sentence: "Zebra punya belang hitam putih.",
+                    emoji: "1f993"
+                },
+                en: { nameSpeech: "zee", soundDisplay: "/z/", phonicsSpeech: "zzz", word: "Zebra", syllables: "Ze - bra", sentence: "A zebra has black and white stripes.", emoji: "1f993" }
+            }
+        ];
+
+        /********************************************************************
+         * 1B. DATABASE MODE 2: MATRIKS SUKU KATA TERBUKA (BA-BI-BU-BE-BO)
+         * Catatan Fonetik: Untuk suku kata berakhiran -E (BE, CE, DE, dst.),
+         * digunakan ejaan diftong tipis "bey", "cey", "dey" agar TTS Bahasa Indonesia
+         * melafalkannya sebagai E Taling (/e/ jelas seperti pada kata "Bebek", "Meja"),
+         * BUKAN e pepet lemah (/ə/ seperti "beli").
+         ********************************************************************/
+        const SYLLABLE_MATRIX_DATA = [
+            { consonant: "B", syllables: ["BA", "BI", "BU", "BE", "BO"], nativeTTS: ["ba", "bi", "bu", "bey", "bo"], fallbackTTS: ["bah", "bee", "boo", "beh", "boh"], sampleWord: "BE - BEK → BEBEK", sampleNative: "bey, bek. bebek!", sampleFallback: "beh, bek. beh-bek!", emoji: "1f986" },
+            { consonant: "C", syllables: ["CA", "CI", "CU", "CE", "CO"], nativeTTS: ["ca", "ci", "cu", "cey", "co"], fallbackTTS: ["chah", "chee", "choo", "cheh", "choh"], sampleWord: "CE - RI → CERI", sampleNative: "cey, ri. ceri!", sampleFallback: "cheh, ree. cheh-ree!", emoji: "1f352" },
+            { consonant: "D", syllables: ["DA", "DI", "DU", "DE", "DO"], nativeTTS: ["da", "di", "du", "dey", "do"], fallbackTTS: ["dah", "dee", "doo", "deh", "doh"], sampleWord: "DA - DU → DADU", sampleNative: "da, du. dadu!", sampleFallback: "dah, doo. dah-doo!", emoji: "1f3b2" },
+            { consonant: "G", syllables: ["GA", "GI", "GU", "GE", "GO"], nativeTTS: ["ga", "gi", "gu", "gey", "go"], fallbackTTS: ["gah", "gee", "goo", "geh", "goh"], sampleWord: "GI - GI → GIGI", sampleNative: "gi, gi. gigi!", sampleFallback: "gee, gee. gee-gee!", emoji: "1f9b7" },
+            { consonant: "H", syllables: ["HA", "HI", "HU", "HE", "HO"], nativeTTS: ["ha", "hi", "hu", "hey", "ho"], fallbackTTS: ["hah", "hee", "hoo", "heh", "hoh"], sampleWord: "HA - TI → HATI", sampleNative: "ha, ti. hati!", sampleFallback: "hah, tee. hah-tee!", emoji: "2764" },
+            { consonant: "J", syllables: ["JA", "JI", "JU", "JE", "JO"], nativeTTS: ["ja", "ji", "ju", "jey", "jo"], fallbackTTS: ["jah", "jee", "joo", "jeh", "joh"], sampleWord: "JA - RI → JARI", sampleNative: "ja, ri. jari!", sampleFallback: "jah, ree. jah-ree!", emoji: "1f590" },
+            { consonant: "K", syllables: ["KA", "KI", "KU", "KE", "KO"], nativeTTS: ["ka", "ki", "ku", "key", "ko"], fallbackTTS: ["kah", "kee", "koo", "keh", "koh"], sampleWord: "KU - DA → KUDA", sampleNative: "ku, da. kuda!", sampleFallback: "koo, dah. koo-dah!", emoji: "1f434" },
+            { consonant: "L", syllables: ["LA", "LI", "LU", "LE", "LO"], nativeTTS: ["la", "li", "lu", "ley", "lo"], fallbackTTS: ["lah", "lee", "loo", "leh", "loh"], sampleWord: "LE - LE → LELE", sampleNative: "ley, ley. lele!", sampleFallback: "leh, leh. leh-leh!", emoji: "1f41f" },
+            { consonant: "M", syllables: ["MA", "MI", "MU", "ME", "MO"], nativeTTS: ["ma", "mi", "mu", "mey", "mo"], fallbackTTS: ["mah", "mee", "moo", "meh", "moh"], sampleWord: "ME - JA → MEJA", sampleNative: "mey, ja. meja!", sampleFallback: "meh, jah. meh-jah!", emoji: "1fa91" },
+            { consonant: "N", syllables: ["NA", "NI", "NU", "NE", "NO"], nativeTTS: ["na", "ni", "nu", "ney", "no"], fallbackTTS: ["nah", "nee", "noo", "neh", "noh"], sampleWord: "NA - SI → NASI", sampleNative: "na, si. nasi!", sampleFallback: "nah, see. nah-see!", emoji: "1f35a" },
+            { consonant: "P", syllables: ["PA", "PI", "PU", "PE", "PO"], nativeTTS: ["pa", "pi", "pu", "pey", "po"], fallbackTTS: ["pah", "pee", "poo", "peh", "poh"], sampleWord: "PI - SANG → PISANG", sampleNative: "pi, sang. pisang!", sampleFallback: "pee, sahng. pee-sahng!", emoji: "1f34c" },
+            { consonant: "R", syllables: ["RA", "RI", "RU", "RE", "RO"], nativeTTS: ["ra", "ri", "ru", "rey", "ro"], fallbackTTS: ["rah", "ree", "roo", "reh", "roh"], sampleWord: "RO - TI → ROTI", sampleNative: "ro, ti. roti!", sampleFallback: "roh, tee. roh-tee!", emoji: "1f35e" },
+            { consonant: "S", syllables: ["SA", "SI", "SU", "SE", "SO"], nativeTTS: ["sa", "si", "su", "sey", "so"], fallbackTTS: ["sah", "see", "soo", "seh", "soh"], sampleWord: "SA - PI → SAPI", sampleNative: "sa, pi. sapi!", sampleFallback: "sah, pee. sah-pee!", emoji: "1f42e" },
+            { consonant: "T", syllables: ["TA", "TI", "TU", "TE", "TO"], nativeTTS: ["ta", "ti", "tu", "tey", "to"], fallbackTTS: ["tah", "tee", "too", "teh", "toh"], sampleWord: "TO - PI → TOPI", sampleNative: "to, pi. topi!", sampleFallback: "toh, pee. toh-pee!", emoji: "1f9e2" }
+        ];
+
+        /********************************************************************
+         * 2. DATABASE MODE 3: SUSUN & BACA KATA (12 KATA ID & 8 KATA EN)
+         ********************************************************************/
+        const BLENDING_WORDS = {
+            id: [
+                { word: "BAJU", units: ["BA", "JU"], nativeSounds: ["ba.", "ju."], fallbackSounds: ["bah", "joo"], fullNative: "ba, ju. baju!", fullFallback: "bah, joo. bah-joo!", meaning: "Pakaian (Shirt)", emoji: "1f455" },
+                { word: "BOLA", units: ["BO", "LA"], nativeSounds: ["bo.", "la."], fallbackSounds: ["boh", "lah"], fullNative: "bo, la. bola!", fullFallback: "boh, lah. boh-lah!", meaning: "Mainan Bundar (Ball)", emoji: "26bd" },
+                { word: "BUKU", units: ["BU", "KU"], nativeSounds: ["bu.", "ku."], fallbackSounds: ["boo", "koo"], fullNative: "bu, ku. buku!", fullFallback: "boo, koo. boo-koo!", meaning: "Bahan Bacaan (Book)", emoji: "1f4d6" },
+                { word: "KUDA", units: ["KU", "DA"], nativeSounds: ["ku.", "da."], fallbackSounds: ["koo", "dah"], fullNative: "ku, da. kuda!", fullFallback: "koo, dah. koo-dah!", meaning: "Hewan Cepat (Horse)", emoji: "1f434" },
+                { word: "SAPI", units: ["SA", "PI"], nativeSounds: ["sa.", "pi."], fallbackSounds: ["sah", "pee"], fullNative: "sa, pi. sapi!", fullFallback: "sah, pee. sah-pee!", meaning: "Penghasil Susu (Cow)", emoji: "1f42e" },
+                { word: "ROTI", units: ["RO", "TI"], nativeSounds: ["ro.", "ti."], fallbackSounds: ["roh", "tee"], fullNative: "ro, ti. roti!", fullFallback: "roh, tee. roh-tee!", meaning: "Makanan Sarapan (Bread)", emoji: "1f35e" },
+                { word: "MATA", units: ["MA", "TA"], nativeSounds: ["ma.", "ta."], fallbackSounds: ["mah", "tah"], fullNative: "ma, ta. mata!", fullFallback: "mah, tah. mah-tah!", meaning: "Indra Penglihat (Eye)", emoji: "1f441" },
+                { word: "GIGI", units: ["GI", "GI"], nativeSounds: ["gi.", "gi."], fallbackSounds: ["gee", "gee"], fullNative: "gi, gi. gigi!", fullFallback: "gee, gee. gee-gee!", meaning: "Untuk Mengunyah (Tooth)", emoji: "1f9b7" },
+                { word: "KAKI", units: ["KA", "KI"], nativeSounds: ["ka.", "ki."], fallbackSounds: ["kah", "kee"], fullNative: "ka, ki. kaki!", fullFallback: "kah, kee. kah-kee!", meaning: "Untuk Berjalan (Foot)", emoji: "1f9b6" },
+                { word: "TOPI", units: ["TO", "PI"], nativeSounds: ["to.", "pi."], fallbackSounds: ["toh", "pee"], fullNative: "to, pi. topi!", fullFallback: "toh, pee. toh-pee!", meaning: "Pelindung Kepala (Cap)", emoji: "1f9e2" },
+                { word: "MEJA", units: ["ME", "JA"], nativeSounds: ["mey.", "ja."], fallbackSounds: ["meh", "jah"], fullNative: "mey, ja. meja!", fullFallback: "meh, jah. meh-jah!", meaning: "Tempat Menulis (Table)", emoji: "1fa91" },
+                { word: "RUSA", units: ["RU", "SA"], nativeSounds: ["ru.", "sa."], fallbackSounds: ["roo", "sah"], fullNative: "ru, sa. rusa!", fullFallback: "roo, sah. roo-sah!", meaning: "Hewan Bertanduk (Deer)", emoji: "1f98c" }
+            ],
+            en: [
+                { word: "CAT", units: ["C", "A", "T"], nativeSounds: ["kuh", "aah", "tuh"], fallbackSounds: ["kuh", "aah", "tuh"], fullNative: "kuh, aah, tuh. cat!", fullFallback: "cat", meaning: "Kucing Lucu", emoji: "1f431" },
+                { word: "DOG", units: ["D", "O", "G"], nativeSounds: ["duh", "aw", "guh"], fallbackSounds: ["duh", "aw", "guh"], fullNative: "duh, aw, guh. dog!", fullFallback: "dog", meaning: "Anjing Setia", emoji: "1f436" },
+                { word: "SUN", units: ["S", "U", "N"], nativeSounds: ["sss", "uh", "nnn"], fallbackSounds: ["sss", "uh", "nnn"], fullNative: "sss, uh, nnn. sun!", fullFallback: "sun", meaning: "Matahari Cerah", emoji: "2600" },
+                { word: "BUS", units: ["B", "U", "S"], nativeSounds: ["buh", "uh", "sss"], fallbackSounds: ["buh", "uh", "sss"], fullNative: "buh, uh, sss. bus!", fullFallback: "bus", meaning: "Mobil Bus Besar", emoji: "1f68c" },
+                { word: "HAT", units: ["H", "A", "T"], nativeSounds: ["huh", "aah", "tuh"], fallbackSounds: ["huh", "aah", "tuh"], fullNative: "huh, aah, tuh. hat!", fullFallback: "hat", meaning: "Topi Kepala", emoji: "1f452" },
+                { word: "PIG", units: ["P", "I", "G"], nativeSounds: ["puh", "ih", "guh"], fallbackSounds: ["puh", "ih", "guh"], fullNative: "puh, ih, guh. pig!", fullFallback: "pig", meaning: "Babi Merah Muda", emoji: "1f437" },
+                { word: "BED", units: ["B", "E", "D"], nativeSounds: ["buh", "eh", "duh"], fallbackSounds: ["buh", "eh", "duh"], fullNative: "buh, eh, duh. bed!", fullFallback: "bed", meaning: "Tempat Tidur", emoji: "1f6cf" },
+                { word: "BUG", units: ["B", "U", "G"], nativeSounds: ["buh", "uh", "guh"], fallbackSounds: ["buh", "uh", "guh"], fullNative: "buh, uh, guh. bug!", fullFallback: "bug", meaning: "Kepik Kecil", emoji: "1f41e" }
+            ]
+        };
+
+        /********************************************************************
+         * 3. STATE APLIKASI & KONFIGURASI SUARA NATURAL INDONESIA
+         ********************************************************************/
+        let currentLang = 'id'; // 'id' atau 'en'
+        let currentMode = 'alphabet'; // 'alphabet', 'syllable', 'blend', 'trace', 'quiz'
+        let currentLetterIndex = 0;
+        let currentConsonantIndex = 0;
+        let currentBlendIndex = 0;
+        let starsCount = parseInt(localStorage.getItem('bintangBaca_stars') || '0', 10);
+        let quizStreak = 0;
+        let currentQuizAnswerIndex = 0;
+        let autoReadInterval = null;
+
+        // Pengaturan Mesin Suara
+        let audioEngineMode = localStorage.getItem('bintangBaca_engine') || 'phonetic'; // 'phonetic' atau 'cloud'
+        let userSpeechRate = parseFloat(localStorage.getItem('bintangBaca_rate') || '0.85');
+        let selectedIndonesianVoiceURI = localStorage.getItem('bintangBaca_idVoiceURI') || '';
+        let hasNativeIndonesianVoice = false;
+        let cloudAudioPlayer = new Audio();
+
+        // State Kanvas Jejak Huruf
+        let traceCanvas, traceCtx;
+        let isDrawing = false;
+        let brushColor = '#3B82F6';
+        let strokePointsCount = 0;
+        let hasCelebratedCurrentTrace = false;
+
+        /********************************************************************
+         * 4. ENGINE AUDIO PROSEDURAL & NATURAL INDONESIAN SPEECH ENGINE
+         ********************************************************************/
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSoundEffect(type) {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+
+                if (type === 'pop') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(420, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.09);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.09);
+                } else if (type === 'success') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+                        gain.gain.setValueAtTime(0.22, now + idx * 0.09);
+                        gain.gain.exponentialRampToValueAtTime(0.008, now + idx * 0.09 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.09);
+                        osc.stop(now + idx * 0.09 + 0.25);
+                    });
+                } else if (type === 'gentleTryAgain') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.linearRampToValueAtTime(240, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                }
+            } catch (e) {}
+        }
+
+        function getBestIndonesianVoice() {
+            if (!('speechSynthesis' in window)) return null;
+            const voices = window.speechSynthesis.getVoices();
+            if (!voices || voices.length === 0) return null;
+
+            const idVoices = voices.filter(v => {
+                const l = (v.lang || '').toLowerCase();
+                const n = (v.name || '').toLowerCase();
+                return l.startsWith('id') || l.includes('id-id') || l.includes('id_id') || n.includes('indonesia') || n.includes('damayanti') || n.includes('gadis') || n.includes('ardi');
+            });
+
+            if (idVoices.length > 0) {
+                hasNativeIndonesianVoice = true;
+                if (selectedIndonesianVoiceURI) {
+                    const manualMatch = idVoices.find(v => v.voiceURI === selectedIndonesianVoiceURI);
+                    if (manualMatch) return manualMatch;
+                }
+                const priorityOrder = ['natural', 'gadis', 'google', 'damayanti', 'ardi'];
+                for (const keyword of priorityOrder) {
+                    const best = idVoices.find(v => v.name.toLowerCase().includes(keyword));
+                    if (best) return best;
+                }
+                return idVoices[0];
+            }
+
+            const msVoice = voices.find(v => (v.lang || '').toLowerCase().startsWith('ms'));
+            if (msVoice) {
+                hasNativeIndonesianVoice = true;
+                return msVoice;
+            }
+
+            hasNativeIndonesianVoice = false;
+            return null;
+        }
+
+        function populateVoiceDropdown() {
+            if (!('speechSynthesis' in window)) return;
+            const voices = window.speechSynthesis.getVoices();
+            const selectEl = document.getElementById('voiceSelectDropdown');
+            const hintEl = document.getElementById('voiceDetectionHint');
+            const bannerText = document.getElementById('activeVoiceStatusText');
+            if (!selectEl) return;
+
+            const bestID = getBestIndonesianVoice();
+            selectEl.innerHTML = '';
+
+            const idVoices = voices.filter(v => {
+                const l = (v.lang || '').toLowerCase();
+                const n = (v.name || '').toLowerCase();
+                return l.startsWith('id') || l.startsWith('ms') || n.includes('indonesia') || n.includes('damayanti');
+            });
+
+            if (idVoices.length > 0) {
+                idVoices.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v.voiceURI;
+                    opt.textContent = `🇮🇩 ${v.name} (${v.lang})`;
+                    if (bestID && v.voiceURI === bestID.voiceURI) {
+                        opt.selected = true;
+                    }
+                    selectEl.appendChild(opt);
+                });
+                hintEl.textContent = `✅ Terdeteksi ${idVoices.length} suara Bahasa Indonesia asli di perangkat Anda (${bestID.name}).`;
+                hintEl.className = "text-xs font-bold text-emerald-700";
+                if (bannerText) {
+                    bannerText.textContent = `Suara Aktif: ${bestID.name} + Ejaan Fonetik Murni Indonesia`;
+                }
+            } else {
+                const opt = document.createElement('option');
+                opt.value = "fallback-phonetic";
+                opt.textContent = "🌐 Simulator Fonetik Vokal Indonesia (Otomatis Anti-Logat Inggris)";
+                selectEl.appendChild(opt);
+                hintEl.textContent = "ℹ️ Perangkat belum menginstal paket suara id-ID. Simulator Akustik Vokal Indonesia diaktifkan otomatis agar bunyi tetap natural Indonesia!";
+                hintEl.className = "text-xs font-bold text-amber-700";
+                if (bannerText) {
+                    bannerText.textContent = "Simulator Fonetik Vokal Indonesia Aktif (Anti-Logat Inggris)";
+                }
+            }
+        }
+
+        function onManualVoiceSelect(voiceURI) {
+            selectedIndonesianVoiceURI = voiceURI;
+            localStorage.setItem('bintangBaca_idVoiceURI', voiceURI);
+            populateVoiceDropdown();
+            testIndonesianVoiceSample();
+        }
+
+        function setAudioEngineMode(mode) {
+            audioEngineMode = mode;
+            localStorage.setItem('bintangBaca_engine', mode);
+            playSoundEffect('pop');
+
+            const btnPhonetic = document.getElementById('btnEnginePhonetic');
+            const btnCloud = document.getElementById('btnEngineCloud');
+
+            if (mode === 'phonetic') {
+                btnPhonetic.className = "p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm";
+                btnCloud.className = "p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100";
+            } else {
+                btnCloud.className = "p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm";
+                btnPhonetic.className = "p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100";
+            }
+        }
+
+        function updateSpeechRate(val) {
+            userSpeechRate = parseFloat(val);
+            localStorage.setItem('bintangBaca_rate', val);
+            document.getElementById('speechRateLabel').textContent = `${userSpeechRate.toFixed(2)}x`;
+        }
+
+        function toggleVoiceModal(show) {
+            playSoundEffect('pop');
+            const modal = document.getElementById('voiceModal');
+            if (show) {
+                populateVoiceDropdown();
+                setAudioEngineMode(audioEngineMode);
+                document.getElementById('speechRateSlider').value = userSpeechRate;
+                document.getElementById('speechRateLabel').textContent = `${userSpeechRate.toFixed(2)}x`;
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function testIndonesianVoiceSample() {
+            speakIndonesianNatural(
+                "Halo teman kecil! Mari belajar membaca. Huruf aa, bey, cey, dey, ey. Suku kata: ba, bi, bu, bey, bo. Bebek!",
+                "Halo teman! Mari belajar. Huruf aah, beh, cheh, deh, eh. Suku kata: bah, bee, boo, beh, boh. Beh-bek!"
+            );
+        }
+
+        function speakIndonesianNatural(nativeText, fallbackText = null) {
+            const textForID = nativeText;
+            const textForFallback = fallbackText || nativeText;
+
+            if (audioEngineMode === 'cloud' && navigator.onLine) {
+                try {
+                    cloudAudioPlayer.pause();
+                    const encoded = encodeURIComponent(textForID);
+                    cloudAudioPlayer.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=id&client=tw-ob&q=${encoded}`;
+                    cloudAudioPlayer.playbackRate = Math.min(1.1, Math.max(0.8, userSpeechRate + 0.08));
+                    const playPromise = cloudAudioPlayer.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(() => {
+                            speakWithWebSpeechID(textForID, textForFallback);
+                        });
+                        return;
+                    }
+                } catch (e) {
+                    speakWithWebSpeechID(textForID, textForFallback);
+                    return;
+                }
+            }
+
+            speakWithWebSpeechID(textForID, textForFallback);
+        }
+
+        function speakWithWebSpeechID(textForID, textForFallback) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+
+            const bestIDVoice = getBestIndonesianVoice();
+            const useText = bestIDVoice ? textForID : textForFallback;
+
+            const utter = new SpeechSynthesisUtterance(useText);
+            utter.lang = 'id-ID';
+            utter.rate = userSpeechRate;
+            utter.pitch = 1.06;
+
+            if (bestIDVoice) {
+                utter.voice = bestIDVoice;
+                utter.lang = bestIDVoice.lang || 'id-ID';
+            }
+
+            window.speechSynthesis.speak(utter);
+        }
+
+        function speakText(text, langCode, rate = null, pitch = 1.08) {
+            if (langCode === 'id') {
+                speakIndonesianNatural(text, text);
+                return;
+            }
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            utter.rate = rate || userSpeechRate;
+            utter.pitch = pitch;
+
+            const voices = window.speechSynthesis.getVoices();
+            const matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith('en'));
+            if (matchedVoice) {
+                utter.voice = matchedVoice;
+            }
+            window.speechSynthesis.speak(utter);
+        }
+
+        function addStars(amount = 1) {
+            starsCount += amount;
+            localStorage.setItem('bintangBaca_stars', starsCount.toString());
+            const starEl = document.getElementById('starCountDisplay');
+            starEl.textContent = starsCount;
+            starEl.classList.remove('animate-pop');
+            void starEl.offsetWidth;
+            starEl.classList.add('animate-pop');
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 70,
+                    spread: 75,
+                    origin: { y: 0.65 }
+                });
+            }
+        }
+
+        /********************************************************************
+         * 5. PENGATURAN BAHASA (ID / EN) & UI LOKALISASI
+         ********************************************************************/
+        function setLanguage(lang) {
+            currentLang = lang;
+            playSoundEffect('pop');
+
+            const btnID = document.getElementById('btnLangID');
+            const btnEN = document.getElementById('btnLangEN');
+
+            if (lang === 'id') {
+                btnID.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-kid font-bold text-sm transition-all bg-sky-500 text-white shadow-sm";
+                btnEN.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-kid font-bold text-sm transition-all text-slate-600 hover:bg-slate-200";
+            } else {
+                btnEN.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-kid font-bold text-sm transition-all bg-sky-500 text-white shadow-sm";
+                btnID.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-kid font-bold text-sm transition-all text-slate-600 hover:bg-slate-200";
+            }
+
+            updateStaticUIText();
+            renderAlphabetMode();
+            if (currentMode === 'syllable') renderSyllableMatrixMode();
+            if (currentMode === 'trace') initTraceCanvas();
+            if (currentMode === 'blend') renderBlendMode();
+            if (currentMode === 'quiz') generateQuizQuestion();
+        }
+
+        function updateStaticUIText() {
+            const isID = currentLang === 'id';
+            document.getElementById('headerSubtitle').textContent = isID
+                ? "Metode Fonik & Suku Kata Ilmiah"
+                : "Scientific Phonics & Early Reading";
+            document.getElementById('btnParentText').textContent = isID
+                ? "Acuan Ilmiah"
+                : "Science Guide";
+
+            document.getElementById('tabTextAlphabet').textContent = isID ? "1. Alfabet" : "1. ABC Phonics";
+            document.getElementById('tabTextSyllable').textContent = isID ? "2. Ba-Bi-Bu" : "2. Syllables";
+            document.getElementById('tabTextBlend').textContent = isID ? "3. Baca Kata" : "3. Blend Words";
+            document.getElementById('tabTextTrace').textContent = isID ? "4. Tulis Huruf" : "4. Trace ABC";
+            document.getElementById('tabTextQuiz').textContent = isID ? "5. Tebak Bunyi" : "5. Sound Quiz";
+
+            document.getElementById('ribbonLabel').textContent = isID
+                ? "Pilih Huruf A sampai Z:"
+                : "Pick a Letter from A to Z:";
+            document.getElementById('btnAutoReadText').textContent = isID
+                ? "Baca Otomatis A-Z"
+                : "Auto Play A-Z";
+
+            document.getElementById('scientificBadge1').textContent = isID
+                ? "🧠 Metode Fonik & Suku Kata Indonesia Murni (Ehri, 1984)"
+                : "🧠 Synthetic Phonics & Embedded Picture Mnemonics (Ehri, 1984)";
+            document.getElementById('wordAssociationLabel').textContent = isID
+                ? "KATA KUNCI VISUAL (KETUK GAMBAR):"
+                : "VISUAL KEYWORD (TAP PICTURE):";
+            document.getElementById('btnLabelName').textContent = isID ? "Langkah 1" : "Step 1";
+            document.getElementById('btnTitleName').textContent = isID ? "Nama Huruf" : "Letter Name";
+            document.getElementById('btnLabelSound').textContent = isID ? "Langkah 2" : "Step 2";
+            document.getElementById('btnTitleSound').textContent = isID ? "Bunyi & Suku Kata" : "Phonics Sound";
+            document.getElementById('btnLabelWord').textContent = isID ? "Langkah 3" : "Step 3";
+            document.getElementById('btnTitleWord').textContent = isID ? "Eja & Baca" : "Blend & Read";
+
+            document.getElementById('scientificBadge2').textContent = isID
+                ? "✍️ Metode Multisensori VAKT (Visual-Auditori-Kinestetik-Taktil)"
+                : "✍️ Multisensory VAKT Tracing (Orton-Gillingham)";
+            document.getElementById('traceHeaderTitle').textContent = isID
+                ? "Tebalkan Huruf dengan Jarimu!"
+                : "Trace the Letter with Your Finger!";
+            document.getElementById('traceProgressLabel').textContent = isID
+                ? "Progres Menulis:"
+                : "Tracing Progress:";
+            document.getElementById('traceInstructionText').textContent = isID
+                ? "Ikuti garis titik-titik sambil mengucapkan bunyi hurufnya keras-keras ya!"
+                : "Follow the dotted lines while saying the phonics sound out loud!";
+            document.getElementById('btnTraceSound').textContent = isID ? "Dengar Bunyi Huruf" : "Hear Letter Sound";
+            document.getElementById('btnTraceClear').textContent = isID ? "Ulangi Tulisan" : "Clear & Retry";
+            document.getElementById('btnTraceDone').textContent = isID ? "Selesai & Ambil Bintang!" : "Done! Collect Star!";
+
+            document.getElementById('scientificBadge3').textContent = isID
+                ? "🧩 Metode Suku Kata Terbuka (KV-KV) Bahasa Indonesia"
+                : "🧩 Synthetic CVC Phoneme Blending & Elkonin Boxes";
+            document.getElementById('blendHeaderTitle').textContent = isID
+                ? "Sentuh Kotak Suku Kata Lalu Gabungkan Menjadi Kata!"
+                : "Tap Each Sound Box Then Blend Into a Word!";
+            document.getElementById('blendTapInstruction').textContent = isID
+                ? "👇 Ketuk Setiap Kotak Suku Kata untuk Mendengar Bunyinya:"
+                : "👇 Tap Each Phoneme Sound Box to Hear Its Sound:";
+            document.getElementById('btnBlendActionText').textContent = isID
+                ? "Gabungkan & Baca Kata!"
+                : "Blend & Read the Word!";
+
+            document.getElementById('scientificBadge4').textContent = isID
+                ? "🎯 Active Recall & Retrieval Practice (Tanpa Hukuman)"
+                : "🎯 Active Recall & Gentle Retrieval Practice";
+            document.getElementById('quizPromptText').textContent = isID
+                ? "Dengarkan baik-baik! Mana huruf untuk bunyi dan kata ini?"
+                : "Listen carefully! Which letter makes this sound and word?";
+            document.getElementById('btnQuizReplayText').textContent = isID
+                ? "Putar Suara Pertanyaan"
+                : "Play Question Audio";
+        }
+
+        /********************************************************************
+         * 6. NAVIGASI ANTAR 5 MODE PEMBELAJARAN
+         ********************************************************************/
+        function switchMode(mode) {
+            stopAutoRead();
+            currentMode = mode;
+            playSoundEffect('pop');
+
+            const modes = ['alphabet', 'syllable', 'blend', 'trace', 'quiz'];
+            const activeColors = {
+                alphabet: 'bg-sky-500 text-white',
+                syllable: 'bg-violet-500 text-white',
+                blend: 'bg-emerald-500 text-white',
+                trace: 'bg-amber-500 text-white',
+                quiz: 'bg-rose-500 text-white'
+            };
+
+            modes.forEach(m => {
+                const sec = document.getElementById(`mode-${m}`);
+                const tab = document.getElementById(`tab-${m}`);
+                const extraSpan = m === 'quiz' ? 'col-span-2 sm:col-span-1 ' : '';
+                if (m === mode) {
+                    sec.classList.remove('hidden');
+                    tab.className = `${extraSpan}btn-3d flex items-center justify-center gap-1.5 py-3 px-2.5 rounded-2xl font-kid font-bold text-xs sm:text-sm border-4 border-white ${activeColors[m]}`;
+                } else {
+                    sec.classList.add('hidden');
+                    tab.className = `${extraSpan}btn-3d flex items-center justify-center gap-1.5 py-3 px-2.5 rounded-2xl font-kid font-bold text-xs sm:text-sm border-4 border-white bg-white text-slate-700 hover:bg-slate-50`;
+                }
+            });
+
+            const ribbonContainer = document.getElementById('letterRibbonContainer');
+            if (mode === 'alphabet' || mode === 'trace') {
+                ribbonContainer.classList.remove('hidden');
+            } else {
+                ribbonContainer.classList.add('hidden');
+            }
+
+            if (mode === 'alphabet') renderAlphabetMode();
+            if (mode === 'syllable') renderSyllableMatrixMode();
+            if (mode === 'trace') setTimeout(initTraceCanvas, 50);
+            if (mode === 'blend') renderBlendMode();
+            if (mode === 'quiz') generateQuizQuestion();
+        }
+
+        /********************************************************************
+         * 7. MODE 1: LOGIKA ALFABET & FONIK (DENGAN EJAAN FONETIK MURNI ID)
+         ********************************************************************/
+        function renderLetterRibbon() {
+            const ribbon = document.getElementById('letterRibbon');
+            ribbon.innerHTML = '';
+
+            ALPHABET_DATA.forEach((item, index) => {
+                const isSelected = index === currentLetterIndex;
+                const btn = document.createElement('button');
+                btn.id = `ribbon-btn-${index}`;
+                btn.onclick = () => selectLetter(index);
+
+                const baseClasses = "flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl font-kid font-bold text-lg sm:text-xl transition-all flex items-center justify-center border-2 ";
+                if (isSelected) {
+                    btn.className = baseClasses + "bg-orange-500 text-white border-white shadow-md scale-110";
+                } else if (item.isVowel) {
+                    btn.className = baseClasses + "bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200";
+                } else {
+                    btn.className = baseClasses + "bg-sky-50 text-sky-800 border-sky-200 hover:bg-sky-100";
+                }
+
+                btn.textContent = item.letter;
+                ribbon.appendChild(btn);
+            });
+        }
+
+        function selectLetter(index) {
+            currentLetterIndex = index;
+            playSoundEffect('pop');
+            renderLetterRibbon();
+
+            const activeBtn = document.getElementById(`ribbon-btn-${index}`);
+            if (activeBtn) {
+                activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+
+            if (currentMode === 'alphabet') {
+                renderAlphabetMode();
+                speakLetterAndPhonicsCombo();
+            } else if (currentMode === 'trace') {
+                initTraceCanvas();
+                speakLetterName();
+            }
+        }
+
+        function prevLetter() {
+            const nextIdx = (currentLetterIndex - 1 + ALPHABET_DATA.length) % ALPHABET_DATA.length;
+            selectLetter(nextIdx);
+        }
+
+        function nextLetter() {
+            const nextIdx = (currentLetterIndex + 1) % ALPHABET_DATA.length;
+            selectLetter(nextIdx);
+        }
+
+        function renderAlphabetMode() {
+            const item = ALPHABET_DATA[currentLetterIndex];
+            const langData = item[currentLang];
+            const isID = currentLang === 'id';
+
+            document.getElementById('displayUpper').textContent = item.letter;
+            document.getElementById('displayLower').textContent = item.letter.toLowerCase();
+
+            const card = document.getElementById('bigLetterCard');
+            card.classList.remove('animate-pop');
+            void card.offsetWidth;
+            card.classList.add('animate-pop');
+
+            document.getElementById('phoneticChip').textContent = isID
+                ? `Lafal Huruf: "${langData.nameDisplay.toUpperCase()}" • Bunyi: ${langData.soundDisplay}`
+                : `Name: "${langData.nameSpeech.toUpperCase()}" • Phonics: ${langData.soundDisplay}`;
+
+            const vowelBadge = document.getElementById('vowelBadge');
+            if (item.isVowel) {
+                vowelBadge.textContent = isID ? "🌟 Huruf Vokal (A-I-U-E-O)" : "🌟 Vowel Letter";
+                vowelBadge.className = "mt-2 text-xs font-extrabold uppercase tracking-wider px-3 py-0.5 rounded-full bg-amber-200 text-amber-900";
+            } else {
+                vowelBadge.textContent = isID ? "🔹 Huruf Konsonan" : "🔹 Consonant Letter";
+                vowelBadge.className = "mt-2 text-xs font-extrabold uppercase tracking-wider px-3 py-0.5 rounded-full bg-sky-200 text-sky-900";
+            }
+
+            const imgEl = document.getElementById('letterImage');
+            imgEl.src = `${TWEMOJI_BASE}${langData.emoji}.svg`;
+            imgEl.alt = langData.word;
+
+            const firstChar = langData.word.charAt(0);
+            const restChars = langData.word.slice(1);
+            document.getElementById('wordTitleDisplay').innerHTML = `<span class="text-rose-500 underline decoration-4">${firstChar}</span>${restChars}`;
+
+            document.getElementById('wordSyllableBreakdown').textContent = isID
+                ? `Suku Kata: ${langData.syllables}`
+                : `Syllables / Sounds: ${langData.syllables}`;
+
+            document.getElementById('wordSentenceDisplay').textContent = `"${langData.sentence}"`;
+
+            // Tampilkan panel edukasi 2 bunyi huruf E (E Taling vs E Pepet) khusus saat huruf E dipilih dalam Bahasa Indonesia
+            const ePanel = document.getElementById('specialEVariantsPanel');
+            if (ePanel) {
+                if (isID && item.letter === 'E') {
+                    ePanel.classList.remove('hidden');
+                } else {
+                    ePanel.classList.add('hidden');
+                }
+            }
+        }
+
+        function speakEVariant(variantType) {
+            playSoundEffect('pop');
+            if (variantType === 'taling') {
+                speakIndonesianNatural(
+                    "Bunyi ey terbuka: ey! Contohnya: ey, kor. Eykor! Bey, bek. Bebek! Mey, ja. Meja!",
+                    "eh! eh, kor. eh-kor! beh, bek. beh-bek! meh, jah. meh-jah!"
+                );
+            } else {
+                speakIndonesianNatural(
+                    "Bunyi e pepet: e! Contohnya: e, lang. Elang! E, nam. Enam! E, mas. Emas!",
+                    "uh! uh, lahng. uh-lahng! uh, nahm. uh-nahm! uh, mahs. uh-mahs!"
+                );
+            }
+        }
+
+        function speakLetterName() {
+            const item = ALPHABET_DATA[currentLetterIndex];
+            playSoundEffect('pop');
+            if (currentLang === 'id') {
+                speakIndonesianNatural(
+                    `huruf ${item.id.nameNativeTTS}.`,
+                    `hoo-roof ${item.id.nameFallbackTTS}.`
+                );
+            } else {
+                speakText(`Letter ${item.en.nameSpeech}`, 'en');
+            }
+        }
+
+        function speakPhonicsSound() {
+            const item = ALPHABET_DATA[currentLetterIndex];
+            playSoundEffect('pop');
+            if (currentLang === 'id') {
+                speakIndonesianNatural(
+                    `bunyinya, ${item.id.phonicsNativeTTS}`,
+                    `boon-yee-nyah, ${item.id.phonicsFallbackTTS}`
+                );
+            } else {
+                speakText(`Makes the sound, ${item.en.phonicsSpeech}`, 'en');
+            }
+        }
+
+        function speakExampleWord() {
+            const item = ALPHABET_DATA[currentLetterIndex];
+            playSoundEffect('pop');
+            if (currentLang === 'id') {
+                speakIndonesianNatural(
+                    `huruf ${item.id.nameNativeTTS}, untuk ${item.id.wordNativeTTS} ${item.id.sentence}`,
+                    `hoo-roof ${item.id.nameFallbackTTS}, oon-took ${item.id.wordFallbackTTS}`
+                );
+            } else {
+                speakText(`${item.en.nameSpeech} is for ${item.en.word}. ${item.en.sentence}`, 'en');
+            }
+        }
+
+        function speakLetterAndPhonicsCombo() {
+            const item = ALPHABET_DATA[currentLetterIndex];
+            if (currentLang === 'id') {
+                speakIndonesianNatural(
+                    `${item.id.nameNativeTTS}. ${item.id.wordNativeTTS}`,
+                    `${item.id.nameFallbackTTS}. ${item.id.wordFallbackTTS}`
+                );
+            } else {
+                speakText(`${item.en.nameSpeech}. ${item.en.word}`, 'en');
+            }
+        }
+
+        function playAlphabetSongHint() {
+            if (autoReadInterval) {
+                stopAutoRead();
+                return;
+            }
+            const btnText = document.getElementById('btnAutoReadText');
+            btnText.textContent = currentLang === 'id' ? "⏹️ Hentikan Otomatis" : "⏹️ Stop Auto Play";
+
+            selectLetter(0);
+            autoReadInterval = setInterval(() => {
+                if (currentLetterIndex < ALPHABET_DATA.length - 1) {
+                    selectLetter(currentLetterIndex + 1);
+                } else {
+                    stopAutoRead();
+                }
+            }, 2800);
+        }
+
+        function stopAutoRead() {
+            if (autoReadInterval) {
+                clearInterval(autoReadInterval);
+                autoReadInterval = null;
+                document.getElementById('btnAutoReadText').textContent = currentLang === 'id'
+                    ? "Baca Otomatis A-Z"
+                    : "Auto Play A-Z";
+            }
+        }
+
+        /********************************************************************
+         * 7B. MODE 2: MATRIKS SUKU KATA TERBUKA (BA - BI - BU - BE - BO)
+         ********************************************************************/
+        function renderSyllableMatrixMode() {
+            const item = SYLLABLE_MATRIX_DATA[currentConsonantIndex];
+            const selectorGrid = document.getElementById('consonantSelectorGrid');
+            selectorGrid.innerHTML = '';
+
+            SYLLABLE_MATRIX_DATA.forEach((row, idx) => {
+                const btn = document.createElement('button');
+                const isSelected = idx === currentConsonantIndex;
+                btn.onclick = () => {
+                    currentConsonantIndex = idx;
+                    playSoundEffect('pop');
+                    renderSyllableMatrixMode();
+                    playAllCurrentSyllables();
+                };
+                btn.className = isSelected
+                    ? "flex-shrink-0 w-11 h-11 rounded-2xl font-kid font-bold text-lg bg-violet-600 text-white border-2 border-white shadow scale-105"
+                    : "flex-shrink-0 w-11 h-11 rounded-2xl font-kid font-bold text-lg bg-white text-violet-800 border-2 border-violet-200 hover:bg-violet-100";
+                btn.textContent = row.consonant;
+                selectorGrid.appendChild(btn);
+            });
+
+            const container = document.getElementById('syllableCardsContainer');
+            container.innerHTML = '';
+            const cardBgColors = [
+                'from-rose-400 to-rose-500 border-rose-200',
+                'from-sky-400 to-sky-500 border-sky-200',
+                'from-emerald-400 to-emerald-500 border-emerald-200',
+                'from-amber-400 to-amber-500 border-amber-200',
+                'from-violet-400 to-violet-500 border-violet-200'
+            ];
+            const vowels = ['A', 'I', 'U', 'E', 'O'];
+
+            item.syllables.forEach((syl, vIdx) => {
+                const card = document.createElement('button');
+                card.id = `syl-card-${vIdx}`;
+                card.onclick = () => speakSingleMatrixSyllable(vIdx);
+                card.className = `btn-3d bg-gradient-to-b ${cardBgColors[vIdx]} text-white rounded-3xl p-5 border-4 flex flex-col items-center justify-center gap-1 transition-transform hover:scale-105`;
+                card.innerHTML = `
+                    <span class="text-xs font-extrabold uppercase opacity-90">${item.consonant} + ${vowels[vIdx]}</span>
+                    <span class="font-kid font-bold text-4xl sm:text-5xl tracking-wide">${syl}</span>
+                    <span class="text-xs font-bold bg-white/25 px-2.5 py-0.5 rounded-full mt-1">🔊 "${syl.toLowerCase()}"</span>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('syllableExampleImg').src = `${TWEMOJI_BASE}${item.emoji}.svg`;
+            document.getElementById('syllableExampleWord').textContent = item.sampleWord;
+        }
+
+        function speakSingleMatrixSyllable(vIdx) {
+            const item = SYLLABLE_MATRIX_DATA[currentConsonantIndex];
+            playSoundEffect('pop');
+            const card = document.getElementById(`syl-card-${vIdx}`);
+            if (card) {
+                card.classList.add('phoneme-active');
+                setTimeout(() => card.classList.remove('phoneme-active'), 500);
+            }
+            speakIndonesianNatural(
+                `${item.nativeTTS[vIdx]}.`,
+                `${item.fallbackTTS[vIdx]}.`
+            );
+        }
+
+        function playAllCurrentSyllables() {
+            const item = SYLLABLE_MATRIX_DATA[currentConsonantIndex];
+            playSoundEffect('pop');
+
+            item.syllables.forEach((_, idx) => {
+                setTimeout(() => {
+                    const card = document.getElementById(`syl-card-${idx}`);
+                    if (card) {
+                        card.classList.add('phoneme-active');
+                        setTimeout(() => card.classList.remove('phoneme-active'), 450);
+                    }
+                }, idx * 550);
+            });
+
+            speakIndonesianNatural(
+                item.nativeTTS.join(', ') + '.',
+                item.fallbackTTS.join(', ') + '.'
+            );
+        }
+
+        function speakSyllableExampleWord() {
+            const item = SYLLABLE_MATRIX_DATA[currentConsonantIndex];
+            playSoundEffect('pop');
+            speakIndonesianNatural(item.sampleNative, item.sampleFallback);
+        }
+
+        /********************************************************************
+         * 8. MODE 4: JEJAK HURUF MULTISENSORI (CANVAS VAKT)
+         ********************************************************************/
+        function initTraceCanvas() {
+            traceCanvas = document.getElementById('traceCanvas');
+            if (!traceCanvas) return;
+            traceCtx = traceCanvas.getContext('2d');
+
+            const rect = traceCanvas.getBoundingClientRect();
+            traceCanvas.width = rect.width || 380;
+            traceCanvas.height = rect.height || 260;
+
+            strokePointsCount = 0;
+            hasCelebratedCurrentTrace = false;
+            updateTraceProgressUI(0);
+            drawGuideLetters();
+        }
+
+        function drawGuideLetters() {
+            if (!traceCtx || !traceCanvas) return;
+            const item = ALPHABET_DATA[currentLetterIndex];
+            const text = `${item.letter} ${item.letter.toLowerCase()}`;
+
+            traceCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
+
+            // Garis bantu buku tulis anak
+            traceCtx.save();
+            traceCtx.strokeStyle = '#E2E8F0';
+            traceCtx.lineWidth = 2;
+            traceCtx.setLineDash([6, 6]);
+            const midY = traceCanvas.height * 0.55;
+            const baseLineY = traceCanvas.height * 0.78;
+            traceCtx.beginPath();
+            traceCtx.moveTo(20, midY);
+            traceCtx.lineTo(traceCanvas.width - 20, midY);
+            traceCtx.moveTo(20, baseLineY);
+            traceCtx.lineTo(traceCanvas.width - 20, baseLineY);
+            traceCtx.stroke();
+            traceCtx.restore();
+
+            // Huruf panduan titik-titik
+            traceCtx.save();
+            const fontSize = Math.min(traceCanvas.width * 0.42, 150);
+            traceCtx.font = `700 ${fontSize}px 'Fredoka', sans-serif`;
+            traceCtx.textAlign = 'center';
+            traceCtx.textBaseline = 'middle';
+
+            traceCtx.fillStyle = '#F1F5F9';
+            traceCtx.fillText(text, traceCanvas.width / 2, traceCanvas.height / 2);
+
+            traceCtx.strokeStyle = '#94A3B8';
+            traceCtx.lineWidth = 3;
+            traceCtx.setLineDash([7, 7]);
+            traceCtx.strokeText(text, traceCanvas.width / 2, traceCanvas.height / 2);
+            traceCtx.restore();
+        }
+
+        function setBrushColor(color) {
+            brushColor = color;
+            playSoundEffect('pop');
+        }
+
+        function clearTraceCanvas() {
+            playSoundEffect('pop');
+            initTraceCanvas();
+        }
+
+        function updateTraceProgressUI(percent) {
+            const clamped = Math.min(100, Math.round(percent));
+            const pctEl = document.getElementById('tracePercentText');
+            const barEl = document.getElementById('traceProgressBar');
+            if (pctEl) pctEl.textContent = `${clamped}%`;
+            if (barEl) barEl.style.width = `${clamped}%`;
+
+            if (clamped >= 100 && !hasCelebratedCurrentTrace) {
+                hasCelebratedCurrentTrace = true;
+                celebrateTracing();
+            }
+        }
+
+        function celebrateTracing() {
+            playSoundEffect('success');
+            triggerConfetti();
+            addStars(1);
+            const item = ALPHABET_DATA[currentLetterIndex];
+            if (currentLang === 'id') {
+                speakIndonesianNatural(
+                    `hebat sekali! kamu berhasil menulis huruf ${item.id.nameNativeTTS}, untuk ${item.id.wordNativeTTS}`,
+                    `heh-baht! huruf ${item.id.nameFallbackTTS}, ${item.id.wordFallbackTTS}`
+                );
+            } else {
+                speakText(`Awesome job! You traced the letter ${item.en.nameSpeech}, for ${item.en.word}!`, 'en');
+            }
+        }
+
+        function setupCanvasEvents() {
+            const canvas = document.getElementById('traceCanvas');
+            if (!canvas) return;
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
+
+            function startDraw(e) {
+                e.preventDefault();
+                isDrawing = true;
+                const pos = getPos(e);
+                traceCtx.beginPath();
+                traceCtx.moveTo(pos.x, pos.y);
+            }
+
+            function moveDraw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const pos = getPos(e);
+                traceCtx.lineCap = 'round';
+                traceCtx.lineJoin = 'round';
+                traceCtx.strokeStyle = brushColor;
+                traceCtx.lineWidth = 18;
+                traceCtx.setLineDash([]);
+                traceCtx.lineTo(pos.x, pos.y);
+                traceCtx.stroke();
+
+                // Efek bintang kecil di ujung jari anak
+                if (strokePointsCount % 7 === 0) {
+                    traceCtx.save();
+                    traceCtx.fillStyle = '#FACC15';
+                    traceCtx.beginPath();
+                    traceCtx.arc(pos.x + (Math.random() * 14 - 7), pos.y + (Math.random() * 14 - 7), 3.5, 0, Math.PI * 2);
+                    traceCtx.fill();
+                    traceCtx.restore();
+                    traceCtx.beginPath();
+                    traceCtx.moveTo(pos.x, pos.y);
+                }
+
+                strokePointsCount++;
+                updateTraceProgressUI((strokePointsCount / 65) * 100);
+            }
+
+            function endDraw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                isDrawing = false;
+                traceCtx.closePath();
+            }
+
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', moveDraw);
+            window.addEventListener('mouseup', endDraw);
+
+            canvas.addEventListener('touchstart', startDraw, { passive: false });
+            canvas.addEventListener('touchmove', moveDraw, { passive: false });
+            canvas.addEventListener('touchend', endDraw, { passive: false });
+
+            window.addEventListener('resize', () => {
+                if (currentMode === 'trace') {
+                    initTraceCanvas();
+                }
+            });
+        }
+
+        /********************************************************************
+         * 9. MODE 3: SUSUN & BACA KATA (SUKU KATA ID / CVC PHONICS EN)
+         ********************************************************************/
+        function renderBlendMode() {
+            const list = BLENDING_WORDS[currentLang];
+            if (currentBlendIndex >= list.length) currentBlendIndex = 0;
+            const currentItem = list[currentBlendIndex];
+
+            document.getElementById('blendCounter').textContent = `${currentBlendIndex + 1} / ${list.length}`;
+
+            const pillsContainer = document.getElementById('blendWordListPills');
+            pillsContainer.innerHTML = '';
+            list.forEach((w, idx) => {
+                const btn = document.createElement('button');
+                btn.onclick = () => {
+                    currentBlendIndex = idx;
+                    playSoundEffect('pop');
+                    renderBlendMode();
+                    playFullBlendSequence();
+                };
+                const isSelected = idx === currentBlendIndex;
+                btn.className = isSelected
+                    ? "flex-shrink-0 px-4 py-2 rounded-2xl font-kid font-bold text-sm bg-emerald-500 text-white shadow-sm border-2 border-white"
+                    : "flex-shrink-0 px-4 py-2 rounded-2xl font-kid font-bold text-sm bg-slate-100 text-slate-700 hover:bg-emerald-100";
+                btn.textContent = w.word;
+                pillsContainer.appendChild(btn);
+            });
+
+            document.getElementById('blendWordImage').src = `${TWEMOJI_BASE}${currentItem.emoji}.svg`;
+            document.getElementById('blendedFullWordText').textContent = currentItem.word;
+            document.getElementById('blendedMeaningSubtext').textContent = currentItem.meaning;
+
+            const boxesContainer = document.getElementById('elkoninBoxesContainer');
+            boxesContainer.innerHTML = '';
+
+            const boxColors = [
+                'bg-sky-500 border-sky-300',
+                'bg-orange-500 border-orange-300',
+                'bg-violet-500 border-violet-300'
+            ];
+
+            currentItem.units.forEach((unitText, idx) => {
+                const unitBtn = document.createElement('button');
+                unitBtn.id = `elkonin-box-${idx}`;
+                unitBtn.onclick = () => playSingleElkoninUnit(idx);
+                unitBtn.className = `btn-3d ${boxColors[idx % boxColors.length]} text-white min-w-[96px] sm:min-w-[120px] py-5 px-6 rounded-3xl border-4 font-kid font-bold text-3xl sm:text-5xl flex flex-col items-center justify-center gap-2 transition-transform`;
+
+                const labelSpan = document.createElement('span');
+                labelSpan.textContent = unitText;
+
+                const dotSpan = document.createElement('span');
+                dotSpan.className = "w-4 h-4 rounded-full bg-white/90 shadow-inner";
+
+                unitBtn.appendChild(labelSpan);
+                unitBtn.appendChild(dotSpan);
+                boxesContainer.appendChild(unitBtn);
+
+                if (idx < currentItem.units.length - 1) {
+                    const plusEl = document.createElement('span');
+                    plusEl.className = "font-kid font-bold text-3xl text-slate-400";
+                    plusEl.textContent = "+";
+                    boxesContainer.appendChild(plusEl);
+                }
+            });
+        }
+
+        function playSingleElkoninUnit(unitIdx) {
+            const currentItem = BLENDING_WORDS[currentLang][currentBlendIndex];
+            const boxEl = document.getElementById(`elkonin-box-${unitIdx}`);
+
+            playSoundEffect('pop');
+            if (boxEl) {
+                boxEl.classList.add('phoneme-active');
+                setTimeout(() => boxEl.classList.remove('phoneme-active'), 550);
+            }
+
+            if (currentLang === 'id') {
+                speakIndonesianNatural(
+                    currentItem.nativeSounds[unitIdx],
+                    currentItem.fallbackSounds[unitIdx]
+                );
+            } else {
+                speakText(currentItem.nativeSounds[unitIdx], 'en');
+            }
+        }
+
+        function playFullBlendSequence() {
+            const currentItem = BLENDING_WORDS[currentLang][currentBlendIndex];
+            playSoundEffect('pop');
+
+            currentItem.units.forEach((_, idx) => {
+                setTimeout(() => {
+                    const boxEl = document.getElementById(`elkonin-box-${idx}`);
+                    if (boxEl) {
+                        boxEl.classList.add('phoneme-active');
+                        setTimeout(() => boxEl.classList.remove('phoneme-active'), 500);
+                    }
+                }, idx * 650);
+            });
+
+            const totalDelay = currentItem.units.length * 650;
+            setTimeout(() => {
+                const fullCard = document.getElementById('blendedFullWordCard');
+                if (fullCard) {
+                    fullCard.classList.add('phoneme-active');
+                    setTimeout(() => fullCard.classList.remove('phoneme-active'), 800);
+                }
+            }, totalDelay);
+
+            if (currentLang === 'id') {
+                speakIndonesianNatural(currentItem.fullNative, currentItem.fullFallback);
+            } else {
+                speakText(currentItem.fullNative, 'en');
+            }
+        }
+
+        function prevBlendWord() {
+            const list = BLENDING_WORDS[currentLang];
+            currentBlendIndex = (currentBlendIndex - 1 + list.length) % list.length;
+            playSoundEffect('pop');
+            renderBlendMode();
+            playFullBlendSequence();
+        }
+
+        function nextBlendWord() {
+            const list = BLENDING_WORDS[currentLang];
+            currentBlendIndex = (currentBlendIndex + 1) % list.length;
+            playSoundEffect('pop');
+            renderBlendMode();
+            playFullBlendSequence();
+        }
+
+        /********************************************************************
+         * 10. MODE 5: KUIS TEBAK BUNYI (ACTIVE RECALL TANPA HUKUMAN)
+         ********************************************************************/
+        function generateQuizQuestion() {
+            const isID = currentLang === 'id';
+            document.getElementById('quizStreakBadge').textContent = isID
+                ? `🔥 Skor Benar: ${quizStreak}`
+                : `🔥 Streak: ${quizStreak}`;
+            document.getElementById('quizFeedbackMessage').textContent = isID
+                ? "Pilih salah satu kartu huruf di bawah ini ya!"
+                : "Tap the matching letter card below!";
+            document.getElementById('quizFeedbackMessage').className = "mt-4 font-kid font-bold text-lg min-h-[1.75rem] text-sky-700";
+
+            currentQuizAnswerIndex = Math.floor(Math.random() * ALPHABET_DATA.length);
+            const optionsIndices = new Set([currentQuizAnswerIndex]);
+            while (optionsIndices.size < 3) {
+                optionsIndices.add(Math.floor(Math.random() * ALPHABET_DATA.length));
+            }
+            const shuffledOptions = Array.from(optionsIndices).sort(() => Math.random() - 0.5);
+
+            const grid = document.getElementById('quizOptionsGrid');
+            grid.innerHTML = '';
+
+            shuffledOptions.forEach(idx => {
+                const item = ALPHABET_DATA[idx];
+                const langData = item[currentLang];
+
+                const cardBtn = document.createElement('button');
+                cardBtn.onclick = () => checkQuizAnswer(idx, cardBtn);
+                cardBtn.className = "btn-3d bg-gradient-to-b from-white to-slate-50 hover:from-sky-50 hover:to-sky-100 border-4 border-sky-200 rounded-3xl p-5 flex flex-col items-center justify-center gap-3 transition-all";
+
+                cardBtn.innerHTML = `
+                    <div class="font-kid font-bold text-6xl text-sky-600">${item.letter}<span class="text-4xl text-amber-500 ml-1">${item.letter.toLowerCase()}</span></div>
+                    <img src="${TWEMOJI_BASE}${langData.emoji}.svg" alt="${langData.word}" class="w-16 h-16">
+                    <span class="font-kid font-bold text-lg text-slate-700">${langData.word}</span>
+                `;
+                grid.appendChild(cardBtn);
+            });
+
+            setTimeout(playQuizPromptAudio, 250);
+        }
+
+        function playQuizPromptAudio() {
+            const target = ALPHABET_DATA[currentQuizAnswerIndex];
+            playSoundEffect('pop');
+
+            if (currentLang === 'id') {
+                speakIndonesianNatural(
+                    `manakah huruf ${target.id.nameNativeTTS}, seperti pada kata ${target.id.wordNativeTTS}`,
+                    `huruf ${target.id.nameFallbackTTS}, ${target.id.wordFallbackTTS}`
+                );
+            } else {
+                speakText(`Find the letter ${target.en.nameSpeech}, that makes the sound ${target.en.phonicsSpeech}, as in ${target.en.word}!`, 'en');
+            }
+        }
+
+        function checkQuizAnswer(selectedIndex, btnElement) {
+            const isID = currentLang === 'id';
+            const feedbackEl = document.getElementById('quizFeedbackMessage');
+
+            if (selectedIndex === currentQuizAnswerIndex) {
+                playSoundEffect('success');
+                triggerConfetti();
+                addStars(1);
+                quizStreak++;
+                document.getElementById('quizStreakBadge').textContent = isID
+                    ? `🔥 Skor Benar: ${quizStreak}`
+                    : `🔥 Streak: ${quizStreak}`;
+
+                btnElement.className = "btn-3d bg-emerald-100 border-4 border-emerald-500 rounded-3xl p-5 flex flex-col items-center justify-center gap-3 scale-105";
+                feedbackEl.textContent = isID
+                    ? "🎉 Horeee! Jawabanmu Benar! Kamu dapat 1 Bintang!"
+                    : "🎉 Yay! That is Correct! You earned 1 Star!";
+                feedbackEl.className = "mt-4 font-kid font-bold text-lg min-h-[1.75rem] text-emerald-600";
+
+                if (isID) {
+                    speakIndonesianNatural("hore! jawabanmu benar sekali!", "ho-reh! beh-nahr!");
+                } else {
+                    speakText("Yay! You got it right!", 'en');
+                }
+
+                setTimeout(generateQuizQuestion, 2300);
+            } else {
+                playSoundEffect('gentleTryAgain');
+                btnElement.classList.add('opacity-50');
+                feedbackEl.textContent = isID
+                    ? "😊 Belum tepat, ayo dengarkan suaranya dan coba kartu sebelahnya ya!"
+                    : "😊 Almost! Listen again and try another card!";
+                feedbackEl.className = "mt-4 font-kid font-bold text-lg min-h-[1.75rem] text-amber-600";
+
+                if (isID) {
+                    speakIndonesianNatural("ayo coba lagi ya!", "choh-bah lah-gee yah!");
+                } else {
+                    speakText("Let's try another one!", 'en');
+                }
+            }
+        }
+
+        /********************************************************************
+         * 11. MODAL PANDUAN ILMIAH & INISIALISASI SAAT HALAMAN DIMUAT
+         ********************************************************************/
+        function toggleScienceModal(show) {
+            playSoundEffect('pop');
+            const modal = document.getElementById('scienceModal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        window.onload = function () {
+            document.getElementById('starCountDisplay').textContent = starsCount;
+
+            if ('speechSynthesis' in window) {
+                populateVoiceDropdown();
+                window.speechSynthesis.onvoiceschanged = () => {
+                    populateVoiceDropdown();
+                };
+            }
+
+            renderLetterRibbon();
+            updateStaticUIText();
+            renderAlphabetMode();
+            renderSyllableMatrixMode();
+            setupCanvasEvents();
+        };
+    </script>
+</body>
+</html>
