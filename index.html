@@ -561,12 +561,12 @@
                         1. Pilih Metode Suara Bahasa Indonesia:
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <button id="btnEnginePhonetic" onclick="setAudioEngineMode('phonetic')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm">
-                            <div class="text-sm sm:text-base">✨ Suara Perangkat + Ejaan Fonetik Murni (Disarankan)</div>
+                        <button id="btnEnginePhonetic" onclick="setAudioEngineMode('phonetic')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100">
+                            <div class="text-sm sm:text-base">✨ Suara Perangkat + Ejaan Fonetik</div>
                             <div class="text-xs opacity-90 font-body mt-0.5">Mengubah huruf ke ejaan vokal Indonesia (aa, bé, cé, ba, bi, bu) agar bebas logat Inggris & 100% jalan offline.</div>
                         </button>
-                        <button id="btnEngineCloud" onclick="setAudioEngineMode('cloud')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100">
-                            <div class="text-sm sm:text-base">☁️ Cloud Natural TTS Indonesia + Fallback</div>
+                        <button id="btnEngineCloud" onclick="setAudioEngineMode('cloud')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm">
+                            <div class="text-sm sm:text-base">☁️ Cloud Natural TTS Indonesia (Disarankan)</div>
                             <div class="text-xs opacity-80 font-body mt-0.5">Menggunakan streaming suara wanita natural Google Indonesia (butuh koneksi internet).</div>
                         </button>
                     </div>
@@ -672,11 +672,11 @@
                 letter: "B", isVowel: false,
                 id: {
                     nameDisplay: "be",
-                    nameNativeTTS: "bey",
-                    nameFallbackTTS: "beh",
+                    nameNativeTTS: "bé",
+                    nameFallbackTTS: "bé",
                     soundDisplay: "/b/",
-                    phonicsNativeTTS: "beh. ba, bi, bu, bey, bo.",
-                    phonicsFallbackTTS: "beh. bah, bee, boo, beh, boh.",
+                    phonicsNativeTTS: "bé. ba, bi, bu, bé, bo.",
+                    phonicsFallbackTTS: "bé. ba, bi, bu, bé, bo.",
                     word: "Bola",
                     wordNativeTTS: "bo, la. bola!",
                     wordFallbackTTS: "boh, lah. boh-lah!",
@@ -1122,26 +1122,23 @@
 
         /********************************************************************
          * 1B. DATABASE MODE 2: MATRIKS SUKU KATA TERBUKA (BA-BI-BU-BE-BO)
-         * Catatan Fonetik: Untuk suku kata berakhiran -E (BE, CE, DE, dst.),
-         * digunakan ejaan diftong tipis "bey", "cey", "dey" agar TTS Bahasa Indonesia
-         * melafalkannya sebagai E Taling (/e/ jelas seperti pada kata "Bebek", "Meja"),
-         * BUKAN e pepet lemah (/ə/ seperti "beli").
+         * Catatan Fonetik: Ejaan "é" menandai bunyi E taling, berbeda dari E pepet.
          ********************************************************************/
         const SYLLABLE_MATRIX_DATA = [
-            { consonant: "B", syllables: ["BA", "BI", "BU", "BE", "BO"], nativeTTS: ["ba", "bi", "bu", "bey", "bo"], fallbackTTS: ["bah", "bee", "boo", "beh", "boh"], sampleWord: "BE - BEK → BEBEK", sampleNative: "bey, bek. bebek!", sampleFallback: "beh, bek. beh-bek!", emoji: "1f986" },
-            { consonant: "C", syllables: ["CA", "CI", "CU", "CE", "CO"], nativeTTS: ["ca", "ci", "cu", "cey", "co"], fallbackTTS: ["chah", "chee", "choo", "cheh", "choh"], sampleWord: "CE - RI → CERI", sampleNative: "cey, ri. ceri!", sampleFallback: "cheh, ree. cheh-ree!", emoji: "1f352" },
-            { consonant: "D", syllables: ["DA", "DI", "DU", "DE", "DO"], nativeTTS: ["da", "di", "du", "dey", "do"], fallbackTTS: ["dah", "dee", "doo", "deh", "doh"], sampleWord: "DA - DU → DADU", sampleNative: "da, du. dadu!", sampleFallback: "dah, doo. dah-doo!", emoji: "1f3b2" },
-            { consonant: "G", syllables: ["GA", "GI", "GU", "GE", "GO"], nativeTTS: ["ga", "gi", "gu", "gey", "go"], fallbackTTS: ["gah", "gee", "goo", "geh", "goh"], sampleWord: "GI - GI → GIGI", sampleNative: "gi, gi. gigi!", sampleFallback: "gee, gee. gee-gee!", emoji: "1f9b7" },
-            { consonant: "H", syllables: ["HA", "HI", "HU", "HE", "HO"], nativeTTS: ["ha", "hi", "hu", "hey", "ho"], fallbackTTS: ["hah", "hee", "hoo", "heh", "hoh"], sampleWord: "HA - TI → HATI", sampleNative: "ha, ti. hati!", sampleFallback: "hah, tee. hah-tee!", emoji: "2764" },
-            { consonant: "J", syllables: ["JA", "JI", "JU", "JE", "JO"], nativeTTS: ["ja", "ji", "ju", "jey", "jo"], fallbackTTS: ["jah", "jee", "joo", "jeh", "joh"], sampleWord: "JA - RI → JARI", sampleNative: "ja, ri. jari!", sampleFallback: "jah, ree. jah-ree!", emoji: "1f590" },
-            { consonant: "K", syllables: ["KA", "KI", "KU", "KE", "KO"], nativeTTS: ["ka", "ki", "ku", "key", "ko"], fallbackTTS: ["kah", "kee", "koo", "keh", "koh"], sampleWord: "KU - DA → KUDA", sampleNative: "ku, da. kuda!", sampleFallback: "koo, dah. koo-dah!", emoji: "1f434" },
-            { consonant: "L", syllables: ["LA", "LI", "LU", "LE", "LO"], nativeTTS: ["la", "li", "lu", "ley", "lo"], fallbackTTS: ["lah", "lee", "loo", "leh", "loh"], sampleWord: "LE - LE → LELE", sampleNative: "ley, ley. lele!", sampleFallback: "leh, leh. leh-leh!", emoji: "1f41f" },
-            { consonant: "M", syllables: ["MA", "MI", "MU", "ME", "MO"], nativeTTS: ["ma", "mi", "mu", "mey", "mo"], fallbackTTS: ["mah", "mee", "moo", "meh", "moh"], sampleWord: "ME - JA → MEJA", sampleNative: "mey, ja. meja!", sampleFallback: "meh, jah. meh-jah!", emoji: "1fa91" },
-            { consonant: "N", syllables: ["NA", "NI", "NU", "NE", "NO"], nativeTTS: ["na", "ni", "nu", "ney", "no"], fallbackTTS: ["nah", "nee", "noo", "neh", "noh"], sampleWord: "NA - SI → NASI", sampleNative: "na, si. nasi!", sampleFallback: "nah, see. nah-see!", emoji: "1f35a" },
-            { consonant: "P", syllables: ["PA", "PI", "PU", "PE", "PO"], nativeTTS: ["pa", "pi", "pu", "pey", "po"], fallbackTTS: ["pah", "pee", "poo", "peh", "poh"], sampleWord: "PI - SANG → PISANG", sampleNative: "pi, sang. pisang!", sampleFallback: "pee, sahng. pee-sahng!", emoji: "1f34c" },
-            { consonant: "R", syllables: ["RA", "RI", "RU", "RE", "RO"], nativeTTS: ["ra", "ri", "ru", "rey", "ro"], fallbackTTS: ["rah", "ree", "roo", "reh", "roh"], sampleWord: "RO - TI → ROTI", sampleNative: "ro, ti. roti!", sampleFallback: "roh, tee. roh-tee!", emoji: "1f35e" },
-            { consonant: "S", syllables: ["SA", "SI", "SU", "SE", "SO"], nativeTTS: ["sa", "si", "su", "sey", "so"], fallbackTTS: ["sah", "see", "soo", "seh", "soh"], sampleWord: "SA - PI → SAPI", sampleNative: "sa, pi. sapi!", sampleFallback: "sah, pee. sah-pee!", emoji: "1f42e" },
-            { consonant: "T", syllables: ["TA", "TI", "TU", "TE", "TO"], nativeTTS: ["ta", "ti", "tu", "tey", "to"], fallbackTTS: ["tah", "tee", "too", "teh", "toh"], sampleWord: "TO - PI → TOPI", sampleNative: "to, pi. topi!", sampleFallback: "toh, pee. toh-pee!", emoji: "1f9e2" }
+            { consonant: "B", syllables: ["BA", "BI", "BU", "BE", "BO"], nativeTTS: ["ba", "bi", "bu", "bé", "bo"], fallbackTTS: ["ba", "bi", "bu", "bé", "bo"], sampleWord: "BE - BEK → BEBEK", sampleNative: "bé, bek. bebek!", sampleFallback: "bé, bek. bebek!", emoji: "1f986" },
+            { consonant: "C", syllables: ["CA", "CI", "CU", "CE", "CO"], nativeTTS: ["ca", "ci", "cu", "cé", "co"], fallbackTTS: ["ca", "ci", "cu", "cé", "co"], sampleWord: "CE - RI → CERI", sampleNative: "cé, ri. ceri!", sampleFallback: "cé, ri. ceri!", emoji: "1f352" },
+            { consonant: "D", syllables: ["DA", "DI", "DU", "DE", "DO"], nativeTTS: ["da", "di", "du", "dé", "do"], fallbackTTS: ["da", "di", "du", "dé", "do"], sampleWord: "DA - DU → DADU", sampleNative: "da, du. dadu!", sampleFallback: "da, du. dadu!", emoji: "1f3b2" },
+            { consonant: "G", syllables: ["GA", "GI", "GU", "GE", "GO"], nativeTTS: ["ga", "gi", "gu", "gé", "go"], fallbackTTS: ["ga", "gi", "gu", "gé", "go"], sampleWord: "GI - GI → GIGI", sampleNative: "gi, gi. gigi!", sampleFallback: "gi, gi. gigi!", emoji: "1f9b7" },
+            { consonant: "H", syllables: ["HA", "HI", "HU", "HE", "HO"], nativeTTS: ["ha", "hi", "hu", "hé", "ho"], fallbackTTS: ["ha", "hi", "hu", "hé", "ho"], sampleWord: "HA - TI → HATI", sampleNative: "ha, ti. hati!", sampleFallback: "ha, ti. hati!", emoji: "2764" },
+            { consonant: "J", syllables: ["JA", "JI", "JU", "JE", "JO"], nativeTTS: ["ja", "ji", "ju", "jé", "jo"], fallbackTTS: ["ja", "ji", "ju", "jé", "jo"], sampleWord: "JA - RI → JARI", sampleNative: "ja, ri. jari!", sampleFallback: "ja, ri. jari!", emoji: "1f590" },
+            { consonant: "K", syllables: ["KA", "KI", "KU", "KE", "KO"], nativeTTS: ["ka", "ki", "ku", "ké", "ko"], fallbackTTS: ["ka", "ki", "ku", "ké", "ko"], sampleWord: "KU - DA → KUDA", sampleNative: "ku, da. kuda!", sampleFallback: "ku, da. kuda!", emoji: "1f434" },
+            { consonant: "L", syllables: ["LA", "LI", "LU", "LE", "LO"], nativeTTS: ["la", "li", "lu", "lé", "lo"], fallbackTTS: ["la", "li", "lu", "lé", "lo"], sampleWord: "LE - LE → LELE", sampleNative: "lé, lé. lele!", sampleFallback: "lé, lé. lele!", emoji: "1f41f" },
+            { consonant: "M", syllables: ["MA", "MI", "MU", "ME", "MO"], nativeTTS: ["ma", "mi", "mu", "mé", "mo"], fallbackTTS: ["ma", "mi", "mu", "mé", "mo"], sampleWord: "ME - JA → MEJA", sampleNative: "mé, ja. meja!", sampleFallback: "mé, ja. meja!", emoji: "1fa91" },
+            { consonant: "N", syllables: ["NA", "NI", "NU", "NE", "NO"], nativeTTS: ["na", "ni", "nu", "né", "no"], fallbackTTS: ["na", "ni", "nu", "né", "no"], sampleWord: "NA - SI → NASI", sampleNative: "na, si. nasi!", sampleFallback: "na, si. nasi!", emoji: "1f35a" },
+            { consonant: "P", syllables: ["PA", "PI", "PU", "PE", "PO"], nativeTTS: ["pa", "pi", "pu", "pé", "po"], fallbackTTS: ["pa", "pi", "pu", "pé", "po"], sampleWord: "PI - SANG → PISANG", sampleNative: "pi, sang. pisang!", sampleFallback: "pi, sang. pisang!", emoji: "1f34c" },
+            { consonant: "R", syllables: ["RA", "RI", "RU", "RE", "RO"], nativeTTS: ["ra", "ri", "ru", "ré", "ro"], fallbackTTS: ["ra", "ri", "ru", "ré", "ro"], sampleWord: "RO - TI → ROTI", sampleNative: "ro, ti. roti!", sampleFallback: "ro, ti. roti!", emoji: "1f35e" },
+            { consonant: "S", syllables: ["SA", "SI", "SU", "SE", "SO"], nativeTTS: ["sa", "si", "su", "sé", "so"], fallbackTTS: ["sa", "si", "su", "sé", "so"], sampleWord: "SA - PI → SAPI", sampleNative: "sa, pi. sapi!", sampleFallback: "sa, pi. sapi!", emoji: "1f42e" },
+            { consonant: "T", syllables: ["TA", "TI", "TU", "TE", "TO"], nativeTTS: ["ta", "ti", "tu", "té", "to"], fallbackTTS: ["ta", "ti", "tu", "té", "to"], sampleWord: "TO - PI → TOPI", sampleNative: "to, pi. topi!", sampleFallback: "to, pi. topi!", emoji: "1f9e2" }
         ];
 
         /********************************************************************
@@ -1188,7 +1185,7 @@
         let autoReadInterval = null;
 
         // Pengaturan Mesin Suara
-        let audioEngineMode = localStorage.getItem('bintangBaca_engine') || 'phonetic'; // 'phonetic' atau 'cloud'
+        let audioEngineMode = localStorage.getItem('bintangBaca_engine') || 'cloud'; // 'phonetic' atau 'cloud'
         let userSpeechRate = parseFloat(localStorage.getItem('bintangBaca_rate') || '0.85');
         let selectedIndonesianVoiceURI = localStorage.getItem('bintangBaca_idVoiceURI') || '';
         let hasNativeIndonesianVoice = false;
@@ -1389,8 +1386,8 @@
 
         function testIndonesianVoiceSample() {
             speakIndonesianNatural(
-                "Halo teman kecil! Mari belajar membaca. Huruf aa, bey, cey, dey, ey. Suku kata: ba, bi, bu, bey, bo. Bebek!",
-                "Halo teman! Mari belajar. Huruf aah, beh, cheh, deh, eh. Suku kata: bah, bee, boo, beh, boh. Beh-bek!"
+                "Halo teman kecil! Mari belajar membaca. Huruf A, bé, cé, dé, é. Suku kata: ba, bi, bu, bé, bo. Bebek!",
+                "Halo teman kecil! Mari belajar membaca. Huruf A, bé, cé, dé, é. Suku kata: ba, bi, bu, bé, bo. Bebek!"
             );
         }
 
@@ -1425,7 +1422,7 @@
             window.speechSynthesis.cancel();
 
             const bestIDVoice = getBestIndonesianVoice();
-            const useText = bestIDVoice ? textForID : textForFallback;
+            const useText = textForID;
 
             const utter = new SpeechSynthesisUtterance(useText);
             utter.lang = 'id-ID';
