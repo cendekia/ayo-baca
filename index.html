@@ -1402,6 +1402,8 @@
         let starsCount = parseInt(localStorage.getItem('AyoBaca_stars') || '0', 10);
         let quizStreak = 0;
         let currentQuizAnswerIndex = 0;
+        let quizAnswered = false; // true after a correct tap, until the next question
+        let quizNextTimer = null;
         let autoReadInterval = null;
 
         // Pengaturan Mesin Suara
@@ -1697,6 +1699,7 @@
          ********************************************************************/
         function switchMode(mode) {
             stopAutoRead();
+            clearTimeout(quizNextTimer);
             currentMode = mode;
             playSoundEffect('pop');
 
@@ -2351,6 +2354,8 @@
          ********************************************************************/
         function generateQuizQuestion() {
             const isID = currentLang === 'id';
+            clearTimeout(quizNextTimer);
+            quizAnswered = false;
             document.getElementById('quizStreakBadge').textContent = isID
                 ? `🔥 Skor Benar: ${quizStreak}`
                 : `🔥 Streak: ${quizStreak}`;
@@ -2403,10 +2408,13 @@
         }
 
         function checkQuizAnswer(selectedIndex, btnElement) {
+            // Ignore extra taps while the "correct" celebration is showing.
+            if (quizAnswered) return;
             const isID = currentLang === 'id';
             const feedbackEl = document.getElementById('quizFeedbackMessage');
 
             if (selectedIndex === currentQuizAnswerIndex) {
+                quizAnswered = true;
                 playSoundEffect('success');
                 triggerConfetti();
                 addStars(1);
@@ -2427,7 +2435,7 @@
                     speakText("Yay! You got it right!", 'en');
                 }
 
-                setTimeout(generateQuizQuestion, 2300);
+                quizNextTimer = setTimeout(generateQuizQuestion, 2300);
             } else {
                 playSoundEffect('gentleTryAgain');
                 btnElement.classList.add('opacity-50');
