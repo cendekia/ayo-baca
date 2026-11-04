@@ -170,7 +170,7 @@
             <div class="flex items-center gap-2">
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span id="activeVoiceStatusText" class="font-bold text-emerald-900">
-                    Mesin Fonetik Bahasa Indonesia Murni Aktif (Tanpa Logat Inggris)
+                    TTS cloud Bahasa Indonesia aktif. Koneksi internet diperlukan.
                 </span>
             </div>
             <button onclick="toggleVoiceModal(true)" class="font-kid font-bold text-emerald-700 hover:text-emerald-900 underline">
@@ -544,10 +544,10 @@
                     <span class="text-3xl">🎙️</span>
                     <div>
                         <h3 class="font-kid font-bold text-xl sm:text-2xl text-emerald-700">
-                            Pengaturan Suara & Logat Bahasa Indonesia
+                            Suara Cloud Bahasa Indonesia
                         </h3>
                         <p class="text-xs sm:text-sm text-slate-500 font-bold">
-                            Memastikan pelafalan huruf & suku kata 100% murni Indonesia
+                            Menggunakan suara alami Bahasa Indonesia melalui internet
                         </p>
                     </div>
                 </div>
@@ -555,40 +555,16 @@
             </div>
 
             <div class="space-y-4 text-sm sm:text-base text-slate-700">
-                <!-- Pilihan Mesin Suara -->
+                <!-- Cloud-only Indonesian speech -->
                 <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-200 space-y-3">
-                    <label class="block font-kid font-bold text-emerald-950 text-base">
-                        1. Pilih Metode Suara Bahasa Indonesia:
-                    </label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <button id="btnEnginePhonetic" onclick="setAudioEngineMode('phonetic')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm">
-                            <div class="text-sm sm:text-base">✨ Suara Perangkat + Ejaan Fonetik Murni (Disarankan)</div>
-                            <div class="text-xs opacity-90 font-body mt-0.5">Mengubah huruf ke ejaan vokal Indonesia (aa, bé, cé, ba, bi, bu) agar bebas logat Inggris & 100% jalan offline.</div>
-                        </button>
-                        <button id="btnEngineCloud" onclick="setAudioEngineMode('cloud')" class="p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100">
-                            <div class="text-sm sm:text-base">☁️ Cloud Natural TTS Indonesia + Fallback</div>
-                            <div class="text-xs opacity-80 font-body mt-0.5">Menggunakan streaming suara wanita natural Google Indonesia (butuh koneksi internet).</div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Pemilih Voice Spesifik Perangkat -->
-                <div class="bg-sky-50 p-4 rounded-2xl border-2 border-sky-200 space-y-2">
-                    <label for="voiceSelectDropdown" class="block font-kid font-bold text-sky-900">
-                        2. Suara Bahasa Indonesia yang Terdeteksi di Perangkat Ini:
-                    </label>
-                    <select id="voiceSelectDropdown" onchange="onManualVoiceSelect(this.value)" class="w-full p-3 rounded-xl border-2 border-sky-300 bg-white font-bold text-slate-700 text-sm">
-                        <!-- Diisi oleh JS -->
-                    </select>
-                    <p id="voiceDetectionHint" class="text-xs font-bold text-slate-600">
-                        Mendeteksi suara perangkat...
-                    </p>
+                    <p class="font-kid font-bold text-emerald-950">TTS cloud alami Bahasa Indonesia</p>
+                    <p class="text-xs font-bold text-slate-600">Memerlukan koneksi internet. Suara perangkat tidak digunakan sebagai pengganti.</p>
                 </div>
 
                 <!-- Kecepatan Bicara Anak -->
                 <div class="bg-amber-50 p-4 rounded-2xl border-2 border-amber-200 space-y-2">
                     <div class="flex justify-between font-kid font-bold text-amber-900">
-                        <span>3. Kecepatan Ejaan Anak:</span>
+                        <span>Kecepatan Bicara:</span>
                         <span id="speechRateLabel">0.85x (Ramah Anak)</span>
                     </div>
                     <input id="speechRateSlider" type="range" min="0.65" max="1.05" step="0.05" value="0.85" oninput="updateSpeechRate(this.value)" class="w-full accent-amber-500 cursor-pointer">
@@ -676,12 +652,12 @@
             {
                 letter: "B", isVowel: false,
                 id: {
-                    nameDisplay: "B (be)",
+                    nameDisplay: "B (be /be/)",
                     nameNativeTTS: "be",
-                    nameFallbackTTS: "beh",
+                    nameFallbackTTS: "be",
                     soundDisplay: "/b/",
                     phonicsNativeTTS: "be, seperti bola.",
-                    phonicsFallbackTTS: "beh, bola.",
+                    phonicsFallbackTTS: "be, bola.",
                     word: "Bola",
                     wordNativeTTS: "bola",
                     wordFallbackTTS: "bola",
@@ -1442,10 +1418,7 @@
         let autoReadInterval = null;
 
         // Pengaturan Mesin Suara
-        let audioEngineMode = localStorage.getItem('AyoBaca_engine') || 'phonetic'; // 'phonetic' atau 'cloud'
         let userSpeechRate = parseFloat(localStorage.getItem('AyoBaca_rate') || '0.85');
-        let selectedIndonesianVoiceURI = localStorage.getItem('AyoBaca_idVoiceURI') || '';
-        let hasNativeIndonesianVoice = false;
         let cloudAudioPlayer = new Audio();
 
         // State Kanvas Jejak Huruf
@@ -1517,110 +1490,6 @@
             } catch (e) {}
         }
 
-        function getBestIndonesianVoice() {
-            if (!('speechSynthesis' in window)) return null;
-            const voices = window.speechSynthesis.getVoices();
-            if (!voices || voices.length === 0) return null;
-
-            const idVoices = voices.filter(v => {
-                const l = (v.lang || '').toLowerCase();
-                const n = (v.name || '').toLowerCase();
-                return l.startsWith('id') || l.includes('id-id') || l.includes('id_id') || n.includes('indonesia') || n.includes('damayanti') || n.includes('gadis') || n.includes('ardi');
-            });
-
-            if (idVoices.length > 0) {
-                hasNativeIndonesianVoice = true;
-                if (selectedIndonesianVoiceURI) {
-                    const manualMatch = idVoices.find(v => v.voiceURI === selectedIndonesianVoiceURI);
-                    if (manualMatch) return manualMatch;
-                }
-                const priorityOrder = ['natural', 'gadis', 'google', 'damayanti', 'ardi'];
-                for (const keyword of priorityOrder) {
-                    const best = idVoices.find(v => v.name.toLowerCase().includes(keyword));
-                    if (best) return best;
-                }
-                return idVoices[0];
-            }
-
-            const msVoice = voices.find(v => (v.lang || '').toLowerCase().startsWith('ms'));
-            if (msVoice) {
-                hasNativeIndonesianVoice = true;
-                return msVoice;
-            }
-
-            hasNativeIndonesianVoice = false;
-            return null;
-        }
-
-        function populateVoiceDropdown() {
-            if (!('speechSynthesis' in window)) return;
-            const voices = window.speechSynthesis.getVoices();
-            const selectEl = document.getElementById('voiceSelectDropdown');
-            const hintEl = document.getElementById('voiceDetectionHint');
-            const bannerText = document.getElementById('activeVoiceStatusText');
-            if (!selectEl) return;
-
-            const bestID = getBestIndonesianVoice();
-            selectEl.innerHTML = '';
-
-            const idVoices = voices.filter(v => {
-                const l = (v.lang || '').toLowerCase();
-                const n = (v.name || '').toLowerCase();
-                return l.startsWith('id') || l.startsWith('ms') || n.includes('indonesia') || n.includes('damayanti');
-            });
-
-            if (idVoices.length > 0) {
-                idVoices.forEach(v => {
-                    const opt = document.createElement('option');
-                    opt.value = v.voiceURI;
-                    opt.textContent = `🇮🇩 ${v.name} (${v.lang})`;
-                    if (bestID && v.voiceURI === bestID.voiceURI) {
-                        opt.selected = true;
-                    }
-                    selectEl.appendChild(opt);
-                });
-                hintEl.textContent = `✅ Terdeteksi ${idVoices.length} suara Bahasa Indonesia asli di perangkat Anda (${bestID.name}).`;
-                hintEl.className = "text-xs font-bold text-emerald-700";
-                if (bannerText) {
-                    bannerText.textContent = `Suara Aktif: ${bestID.name} + Ejaan Fonetik Murni Indonesia`;
-                }
-            } else {
-                const opt = document.createElement('option');
-                opt.value = "fallback-phonetic";
-                opt.textContent = "🌐 Simulator Fonetik Vokal Indonesia (Otomatis Anti-Logat Inggris)";
-                selectEl.appendChild(opt);
-                hintEl.textContent = "ℹ️ Perangkat belum menginstal paket suara id-ID. Simulator Akustik Vokal Indonesia diaktifkan otomatis agar bunyi tetap natural Indonesia!";
-                hintEl.className = "text-xs font-bold text-amber-700";
-                if (bannerText) {
-                    bannerText.textContent = "Simulator Fonetik Vokal Indonesia Aktif (Anti-Logat Inggris)";
-                }
-            }
-        }
-
-        function onManualVoiceSelect(voiceURI) {
-            selectedIndonesianVoiceURI = voiceURI;
-            localStorage.setItem('AyoBaca_idVoiceURI', voiceURI);
-            populateVoiceDropdown();
-            testIndonesianVoiceSample();
-        }
-
-        function setAudioEngineMode(mode) {
-            audioEngineMode = mode;
-            localStorage.setItem('AyoBaca_engine', mode);
-            playSoundEffect('pop');
-
-            const btnPhonetic = document.getElementById('btnEnginePhonetic');
-            const btnCloud = document.getElementById('btnEngineCloud');
-
-            if (mode === 'phonetic') {
-                btnPhonetic.className = "p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm";
-                btnCloud.className = "p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100";
-            } else {
-                btnCloud.className = "p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-emerald-600 text-white border-emerald-700 shadow-sm";
-                btnPhonetic.className = "p-3 rounded-2xl border-2 font-kid font-bold text-left transition-all bg-white text-slate-700 border-slate-200 hover:bg-emerald-100";
-            }
-        }
-
         function updateSpeechRate(val) {
             userSpeechRate = parseFloat(val);
             localStorage.setItem('AyoBaca_rate', val);
@@ -1631,8 +1500,6 @@
             playSoundEffect('pop');
             const modal = document.getElementById('voiceModal');
             if (show) {
-                populateVoiceDropdown();
-                setAudioEngineMode(audioEngineMode);
                 document.getElementById('speechRateSlider').value = userSpeechRate;
                 document.getElementById('speechRateLabel').textContent = `${userSpeechRate.toFixed(2)}x`;
                 modal.classList.remove('hidden');
@@ -1643,76 +1510,54 @@
 
         function testIndonesianVoiceSample() {
             speakIndonesianNatural(
-                "Halo teman kecil! Mari belajar huruf vokal: a, i, u, e, o. Apel, ikan, ulat, ekor, elang, obeng. Suku kata: batu, bibir, buku, bebek, bola!",
-                "Halo teman kecil! Mari belajar huruf vokal: a, i, u, e, o. Apel, ikan, ulat, ekor, elang, obeng."
+                "Tes huruf B. Nama huruf B: be. Suku kata: ba, bi, bu, be, bo. Kata: bola, bebek.",
+                "Tes huruf B. Nama huruf B: be. Suku kata: ba, bi, bu, be, bo. Kata: bola, bebek."
             );
         }
 
-        function speakIndonesianNatural(nativeText, fallbackText = null) {
-            const textForID = nativeText;
-            const textForFallback = fallbackText || nativeText;
-
-            if (audioEngineMode === 'cloud' && navigator.onLine) {
-                try {
-                    cloudAudioPlayer.pause();
-                    const encoded = encodeURIComponent(textForID);
-                    cloudAudioPlayer.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=id&client=tw-ob&q=${encoded}`;
-                    cloudAudioPlayer.playbackRate = Math.min(1.1, Math.max(0.8, userSpeechRate + 0.08));
-                    const playPromise = cloudAudioPlayer.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(() => {
-                            speakWithWebSpeechID(textForID, textForFallback);
-                        });
-                        return;
-                    }
-                } catch (e) {
-                    speakWithWebSpeechID(textForID, textForFallback);
-                    return;
-                }
-            }
-
-            speakWithWebSpeechID(textForID, textForFallback);
+        function setSpeechStatus(message, failed = false) {
+            const status = document.getElementById('activeVoiceStatusText');
+            if (!status) return;
+            status.textContent = message;
+            status.className = failed ? "font-bold text-rose-900" : "font-bold text-emerald-900";
         }
 
-        function speakWithWebSpeechID(textForID, textForFallback) {
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-
-            const bestIDVoice = getBestIndonesianVoice();
-            const useText = textForID;
-
-            const utter = new SpeechSynthesisUtterance(useText);
-            utter.lang = 'id-ID';
-            utter.rate = userSpeechRate;
-            utter.pitch = 1.06;
-
-            if (bestIDVoice) {
-                utter.voice = bestIDVoice;
-                utter.lang = bestIDVoice.lang || 'id-ID';
-            }
-
-            window.speechSynthesis.speak(utter);
-        }
-
-        function speakText(text, langCode, rate = null, pitch = 1.08) {
-            if (langCode === 'id') {
-                speakIndonesianNatural(text, text);
+        function speakCloudText(text, language = 'id') {
+            if (!navigator.onLine) {
+                cloudAudioPlayer.pause();
+                setSpeechStatus('Koneksi internet diperlukan untuk memutar suara cloud.', true);
                 return;
             }
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
 
-            const utter = new SpeechSynthesisUtterance(text);
-            utter.lang = 'en-US';
-            utter.rate = rate || userSpeechRate;
-            utter.pitch = pitch;
+            cloudAudioPlayer.pause();
+            cloudAudioPlayer.currentTime = 0;
+            cloudAudioPlayer.playbackRate = userSpeechRate;
+            cloudAudioPlayer.onerror = () => {
+                setSpeechStatus('Suara cloud gagal dimuat. Periksa koneksi internet lalu coba lagi.', true);
+            };
+            cloudAudioPlayer.onplaying = () => {
+                setSpeechStatus('TTS cloud Bahasa Indonesia aktif.');
+            };
+            cloudAudioPlayer.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${language}&client=tw-ob&q=${encodeURIComponent(text)}`;
 
-            const voices = window.speechSynthesis.getVoices();
-            const matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith('en'));
-            if (matchedVoice) {
-                utter.voice = matchedVoice;
+            try {
+                const playPromise = cloudAudioPlayer.play();
+                if (playPromise) {
+                    playPromise.catch(() => {
+                        setSpeechStatus('Suara cloud tidak dapat diputar. Periksa koneksi internet lalu coba lagi.', true);
+                    });
+                }
+            } catch (e) {
+                setSpeechStatus('Suara cloud tidak dapat diputar. Periksa koneksi internet lalu coba lagi.', true);
             }
-            window.speechSynthesis.speak(utter);
+        }
+
+        function speakIndonesianNatural(text) {
+            speakCloudText(text, 'id');
+        }
+
+        function speakText(text, langCode) {
+            speakCloudText(text, langCode === 'en' ? 'en' : 'id');
         }
 
         function addStars(amount = 1) {
@@ -2623,13 +2468,6 @@
 
         window.onload = function () {
             document.getElementById('starCountDisplay').textContent = starsCount;
-
-            if ('speechSynthesis' in window) {
-                populateVoiceDropdown();
-                window.speechSynthesis.onvoiceschanged = () => {
-                    populateVoiceDropdown();
-                };
-            }
 
             renderLetterRibbon();
             updateStaticUIText();
