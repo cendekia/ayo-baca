@@ -1546,6 +1546,11 @@
             status.className = failed ? "font-bold text-rose-900" : "font-bold text-emerald-900";
         }
 
+        // The browser can't tell the page why a sound failed (no internet, or Google answering
+        // 429 Too Many Requests), so this message covers both.
+        const SOUND_FAILED_MESSAGE = 'Suara gagal dimuat. Periksa koneksi internet, atau tunggu beberapa menit karena Google mungkin sedang membatasi jumlah suara.';
+        const TAP_TO_ENABLE_MESSAGE = 'Browser menahan suara. Ketuk layar sekali, lalu coba lagi.';
+
         function speakCloudText(text, language = 'id') {
             if (!navigator.onLine) {
                 cloudAudioPlayer.pause();
@@ -1556,7 +1561,7 @@
             cloudAudioPlayer.pause();
             cloudAudioPlayer.currentTime = 0;
             cloudAudioPlayer.onerror = () => {
-                setSpeechStatus('Suara cloud gagal dimuat. Periksa koneksi internet lalu coba lagi.', true);
+                setSpeechStatus(SOUND_FAILED_MESSAGE, true);
             };
             cloudAudioPlayer.onplaying = () => {
                 setSpeechStatus('TTS cloud Bahasa Indonesia aktif.');
@@ -1572,11 +1577,12 @@
                     playPromise.catch((err) => {
                         // A newer sound interrupted this one; that is not a connection problem.
                         if (err && err.name === 'AbortError') return;
-                        setSpeechStatus('Suara cloud tidak dapat diputar. Periksa koneksi internet lalu coba lagi.', true);
+                        // NotAllowedError: the browser blocks sound until the child taps the page.
+                        setSpeechStatus(err && err.name === 'NotAllowedError' ? TAP_TO_ENABLE_MESSAGE : SOUND_FAILED_MESSAGE, true);
                     });
                 }
             } catch (e) {
-                setSpeechStatus('Suara cloud tidak dapat diputar. Periksa koneksi internet lalu coba lagi.', true);
+                setSpeechStatus(SOUND_FAILED_MESSAGE, true);
             }
         }
 
