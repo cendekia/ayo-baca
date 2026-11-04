@@ -471,7 +471,7 @@
                             <span>🧽</span> <span id="btnTraceClear">Ulangi Tulisan</span>
                         </button>
 
-                        <button onclick="celebrateTracing()" class="btn-3d bg-amber-500 hover:bg-amber-600 text-white py-3 px-4 rounded-2xl font-kid font-bold flex items-center justify-center gap-2">
+                        <button onclick="finishTracing()" class="btn-3d bg-amber-500 hover:bg-amber-600 text-white py-3 px-4 rounded-2xl font-kid font-bold flex items-center justify-center gap-2">
                             <span>⭐</span> <span id="btnTraceDone">Selesai & Ambil Bintang!</span>
                         </button>
                     </div>
@@ -1417,6 +1417,18 @@
         let strokePointsCount = 0;
         let hasCelebratedCurrentTrace = false;
 
+        // Tracing progress = how much of the guide letter the strokes cover.
+        // Sample points inside the letter are marked when the brush passes over them.
+        const TRACE_SAMPLE_STEP = 6;      // px between sample points
+        const TRACE_BRUSH_RADIUS = 12;    // brush is 18px wide, plus a little tolerance
+        const TRACE_FULL_COVERAGE = 0.7;  // covering 70% of the letter shows as 100%
+        const TRACE_MIN_FOR_STAR = 50;    // the "Selesai" button needs at least 50% progress
+        let traceTargets = [];            // [{ x, y }] in CSS pixels
+        let traceTargetHit = new Uint8Array(0);
+        let traceHitCount = 0;
+        let traceProgress = 0;            // 0-100
+        let lastTracePos = null;
+
         /********************************************************************
          * 4. ENGINE AUDIO PROSEDURAL & NATURAL INDONESIAN SPEECH ENGINE
          ********************************************************************/
@@ -2116,6 +2128,56 @@
             traceCtx.setLineDash([7, 7]);
             traceCtx.strokeText(text, w / 2, h / 2);
             traceCtx.restore();
+
+            buildTraceTargets(text, `700 ${fontSize}px 'Fredoka', sans-serif`);
+        }
+
+        // Draw the guide letter on a hidden canvas and keep a grid of points that fall inside it.
+        function buildTraceTargets(text, font) {
+            const w = Math.max(1, Math.round(traceCssWidth));
+            const h = Math.max(1, Math.round(traceCssHeight));
+            const mask = document.createElement('canvas');
+            mask.width = w;
+            mask.height = h;
+            const maskCtx = mask.getContext('2d');
+            maskCtx.font = font;
+            maskCtx.textAlign = 'center';
+            maskCtx.textBaseline = 'middle';
+            maskCtx.fillStyle = '#000';
+            maskCtx.fillText(text, traceCssWidth / 2, traceCssHeight / 2);
+            const pixels = maskCtx.getImageData(0, 0, w, h).data;
+
+            traceTargets = [];
+            for (let y = TRACE_SAMPLE_STEP / 2; y < h; y += TRACE_SAMPLE_STEP) {
+                for (let x = TRACE_SAMPLE_STEP / 2; x < w; x += TRACE_SAMPLE_STEP) {
+                    const alpha = pixels[(Math.floor(y) * w + Math.floor(x)) * 4 + 3];
+                    if (alpha > 128) traceTargets.push({ x, y });
+                }
+            }
+            traceTargetHit = new Uint8Array(traceTargets.length);
+            traceHitCount = 0;
+        }
+
+        // Mark letter points covered by the brush along the segment from -> to.
+        function markTraceCoverage(from, to) {
+            if (!traceTargets.length) return;
+            const r2 = TRACE_BRUSH_RADIUS * TRACE_BRUSH_RADIUS;
+            const steps = Math.max(1, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / (TRACE_BRUSH_RADIUS / 2)));
+            for (let s = 0; s <= steps; s++) {
+                const px = from.x + (to.x - from.x) * (s / steps);
+                const py = from.y + (to.y - from.y) * (s / steps);
+                for (let i = 0; i < traceTargets.length; i++) {
+                    if (traceTargetHit[i]) continue;
+                    const dx = traceTargets[i].x - px;
+                    const dy = traceTargets[i].y - py;
+                    if (dx * dx + dy * dy <= r2) {
+                        traceTargetHit[i] = 1;
+                        traceHitCount++;
+                    }
+                }
+            }
+            const coverage = traceHitCount / traceTargets.length;
+            updateTraceProgressUI((coverage / TRACE_FULL_COVERAGE) * 100);
         }
 
         function setBrushColor(color) {
@@ -2130,6 +2192,7 @@
 
         function updateTraceProgressUI(percent) {
             const clamped = Math.min(100, Math.round(percent));
+            traceProgress = clamped;
             const pctEl = document.getElementById('tracePercentText');
             const barEl = document.getElementById('traceProgressBar');
             if (pctEl) pctEl.textContent = `${clamped}%`;
@@ -2139,6 +2202,31 @@
                 hasCelebratedCurrentTrace = true;
                 celebrateTracing();
             }
+        }
+
+        // "Selesai & Ambil Bintang!" button: one star per letter, and only after real tracing.
+        function finishTracing() {
+            const isID = currentLang === 'id';
+            if (hasCelebratedCurrentTrace) {
+                playSoundEffect('pop');
+                if (isID) {
+                    speakIndonesianNatural("Bintangnya sudah kamu dapat. Ayo coba huruf lain!");
+                } else {
+                    speakText("You already got this star. Try another letter!", 'en');
+                }
+                return;
+            }
+            if (traceProgress < TRACE_MIN_FOR_STAR) {
+                playSoundEffect('gentleTryAgain');
+                if (isID) {
+                    speakIndonesianNatural("Ayo tebalkan hurufnya dulu sampai penuh, ya!");
+                } else {
+                    speakText("Trace the whole letter first!", 'en');
+                }
+                return;
+            }
+            hasCelebratedCurrentTrace = true;
+            celebrateTracing();
         }
 
         function celebrateTracing() {
@@ -2176,6 +2264,8 @@
                 const pos = getPos(e);
                 traceCtx.beginPath();
                 traceCtx.moveTo(pos.x, pos.y);
+                lastTracePos = pos;
+                markTraceCoverage(pos, pos);
             }
 
             function moveDraw(e) {
@@ -2203,7 +2293,8 @@
                 }
 
                 strokePointsCount++;
-                updateTraceProgressUI((strokePointsCount / 65) * 100);
+                markTraceCoverage(lastTracePos || pos, pos);
+                lastTracePos = pos;
             }
 
             function endDraw(e) {
