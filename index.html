@@ -1518,7 +1518,6 @@
 
             cloudAudioPlayer.pause();
             cloudAudioPlayer.currentTime = 0;
-            cloudAudioPlayer.playbackRate = userSpeechRate;
             cloudAudioPlayer.onerror = () => {
                 setSpeechStatus('Suara cloud gagal dimuat. Periksa koneksi internet lalu coba lagi.', true);
             };
@@ -1526,6 +1525,9 @@
                 setSpeechStatus('TTS cloud Bahasa Indonesia aktif.');
             };
             cloudAudioPlayer.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${language}&client=tw-ob&q=${encodeURIComponent(text)}`;
+            // Setting src resets playbackRate to defaultPlaybackRate, so apply the speed afterwards.
+            cloudAudioPlayer.defaultPlaybackRate = userSpeechRate;
+            cloudAudioPlayer.playbackRate = userSpeechRate;
 
             try {
                 const playPromise = cloudAudioPlayer.play();
